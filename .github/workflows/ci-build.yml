@@ -69,6 +69,9 @@ jobs:
         run: cmake --build build_root --parallel 2
       - name: Test
         run: ctest --test-dir build_root --output-on-failure --timeout 180
+      - name: Native Windows typography preview
+        working-directory: build_root/tests/ui
+        run: ../../output/klogg_itests.exe "[appearance]" -platform windows
       - name: Package portable application
         shell: pwsh
         run: |
@@ -123,3 +126,4 @@ jobs:
           path: build_root/tests/ui/ui-*.png
           if-no-files-found: ignore
           retention-days: 7
+

@@ -181,7 +181,11 @@ bool HighlighterEdit::showColorPicker( const QColor& in, QColor& out )
     for ( size_t i = 0; i < colors.size(); ++i ) {
         QColorDialog::setStandardColor( static_cast<int>( i ), QColor( colors[i] ) );
         QColorDialog::setStandardColor( static_cast<int>( i + colors.size() ),
-                                       QColor( colors[i] ).darker( 280 ) );
+                                       QColor( vividColorPalette()[i] ) );
+    }
+    for ( int i = 0; i < 12; ++i ) {
+        QColorDialog::setStandardColor( 36 + i,
+            QColor( colors[static_cast<size_t>( i )] ).darker( 280 ) );
     }
     QColorDialog dialog;
 

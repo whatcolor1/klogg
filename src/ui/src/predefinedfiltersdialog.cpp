@@ -196,7 +196,7 @@ void PredefinedFiltersDialog::setFilterRow( int row, const PredefinedFilter& fil
     const auto updateColor = [color]( const QColor& value ) {
         color->setProperty( "filterColor", value );
         color->setStyleSheet( QString( "QPushButton { background-color: %1; color: %2; "
-            "border: 1px solid %2; border-radius: 3px; padding: 4px 12px; }" )
+            "border: 1px solid %2; border-radius: 3px; padding: 2px 8px; }" )
             .arg( value.name(), readableForeground( value ).name() ) );
         color->setToolTip( value.name() );
     };

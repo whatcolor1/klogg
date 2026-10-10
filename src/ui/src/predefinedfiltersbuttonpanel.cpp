@@ -6,7 +6,6 @@
 #include <QMenu>
 #include <QResizeEvent>
 #include <QToolButton>
-#include <QPainter>
 #include <algorithm>
 
 namespace {
@@ -44,14 +43,14 @@ void PredefinedFiltersButtonPanel::setFilters( const QList<PredefinedFilter>& fi
     filters_ = filters;
     for ( const auto& filter : filters_ ) {
         auto* button = new QToolButton( this );
-        button->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+        button->setToolButtonStyle( Qt::ToolButtonTextOnly );
         button->setText( filter.name );
         const auto color = filter.color.isValid() ? filter.color : automaticFilterColor( filter.name );
         const auto fore = readableForeground( color );
         const auto border = color.lightness() > 128 ? color.darker( 160 ) : color.lighter( 160 );
         button->setStyleSheet( QString(
             "QToolButton { background: %1; color: %2; border: 2px solid transparent; "
-            "border-bottom-color: %3; border-radius: 4px; padding: 3px 8px; } "
+            "border-bottom-color: %3; border-radius: 3px; padding: 1px 6px; } "
             "QToolButton:hover { border-color: %3; } "
             "QToolButton:checked { border: 2px solid %2; } "
             "QToolButton:focus { border: 2px dashed %2; }" )
@@ -88,19 +87,7 @@ void PredefinedFiltersButtonPanel::setActiveFilters( const QList<PredefinedFilte
     for ( int i = 0; i < buttons_.size(); ++i ) {
         buttons_[i]->setChecked( std::any_of( active_.cbegin(), active_.cend(),
             [this, i]( const auto& f ) { return sameFilter( f, filters_[i] ); } ) );
-        // Reserve the same icon width in both states so toggling never moves buttons.
-        QPixmap check( 16, 16 );
-        check.fill( Qt::transparent );
-        if ( buttons_[i]->isChecked() ) {
-            QPainter painter( &check );
-            const auto color = filters_[i].color.isValid() ? filters_[i].color
-                : automaticFilterColor( filters_[i].name );
-            painter.setRenderHint( QPainter::Antialiasing );
-            painter.setPen( QPen( readableForeground( color ), 2.2 ) );
-            painter.drawLine( 3, 8, 6, 11 );
-            painter.drawLine( 6, 11, 13, 4 );
-        }
-        buttons_[i]->setIcon( QIcon( check ) );
+
     }
     for ( auto* action : menu_->actions() ) {
         const auto i = action->data().toInt();
@@ -137,7 +124,7 @@ void PredefinedFiltersButtonPanel::changeEvent( QEvent* event )
 
 void PredefinedFiltersButtonPanel::arrangeButtons()
 {
-    constexpr int gap = 4;
+    constexpr int gap = 3;
     const int available = std::max( 0, width() - 2 * gap );
     int rowHeight = more_->sizeHint().height();
     for ( auto* b : buttons_ ) rowHeight = std::max( rowHeight, b->sizeHint().height() );

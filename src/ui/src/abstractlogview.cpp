@@ -2105,6 +2105,7 @@ void AbstractLogView::createMenu()
              [ this ]( auto ) { Q_EMIT replaceScratchpadWithSelection(); } );
 
     popupMenu_ = new QMenu( this );
+    popupMenu_->setFont( QApplication::font( "QMenu" ) );
     highlightersMenu_ = new HighlightersMenu( tr( "Highlighters" ) );
     popupMenu_->addMenu( highlightersMenu_ );
     colorLabelsMenu_ = popupMenu_->addMenu( tr( "Color labels" ) );

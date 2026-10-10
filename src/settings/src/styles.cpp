@@ -19,12 +19,73 @@
 
 #include <QApplication>
 #include <QPalette>
+#include <QFontDatabase>
 #include <QStyleFactory>
 #include <qcolor.h>
 
 #include "configuration.h"
 #include "log.h"
 #include "styles.h"
+
+namespace {
+void applyInterfaceAppearance()
+{
+    // UI typography is independent of the configurable fixed-pitch log font.
+    QFont font = QFontDatabase::systemFont( QFontDatabase::GeneralFont );
+#ifdef Q_OS_WIN
+    const auto installed = QFontDatabase::families();
+    QStringList families;
+    for ( const auto& family : { QStringLiteral( "Microsoft YaHei UI" ),
+                                QStringLiteral( "Microsoft YaHei" ),
+                                QStringLiteral( "Segoe UI" ) } ) {
+        if ( installed.contains( family, Qt::CaseInsensitive ) ) families.append( family );
+    }
+    if ( !families.isEmpty() ) font.setFamilies( families );
+#endif
+    if ( font.pointSizeF() <= 0 ) font.setPointSizeF( 9.0 );
+    font.setStyleHint( QFont::SansSerif );
+    font.setStyleStrategy( QFont::PreferAntialias );
+    font.setWeight( QFont::Normal );
+    font.setItalic( false );
+    font.setFixedPitch( false );
+    QApplication::setFont( font );
+    // Override platform-specific menu fonts too, including mixed-script menus.
+    QApplication::setFont( font, "QMenu" );
+    QApplication::setFont( font, "QMenuBar" );
+    QApplication::setFont( font, "QToolTip" );
+
+    // Palette roles preserve the selected light/dark theme and system contrast.
+    // No QWidget/global font selector: custom log painting keeps its own font.
+    qApp->setStyleSheet( QStringLiteral( R"(
+        QMenu { background: palette(window); color: palette(window-text);
+                border: 1px solid palette(mid); padding: 3px 0px; }
+        QMenu::item { padding: 4px 24px; }
+        QMenu::item:selected { background: palette(highlight); color: palette(highlighted-text); }
+        QMenu::item:disabled { color: palette(mid); }
+        QMenu::separator { height: 1px; background: palette(mid); margin: 3px 8px; }
+        QMenuBar::item { padding: 4px 8px; }
+        QMenuBar::item:selected { background: palette(highlight); color: palette(highlighted-text); }
+        QToolBar { spacing: 3px; padding: 2px; border: 0px;
+                   border-bottom: 1px solid palette(mid); }
+        QPushButton { padding: 3px 9px; border: 1px solid palette(mid); border-radius: 4px;
+                      background: palette(button); color: palette(button-text); }
+        QPushButton:hover { border-color: palette(highlight); }
+        QPushButton:pressed, QPushButton:checked { background: palette(highlight);
+                                                 color: palette(highlighted-text); }
+        QPushButton:default, QPushButton:focus { border-color: palette(highlight); }
+        QPushButton:disabled { color: palette(mid); }
+        QToolButton { padding: 2px 4px; border: 1px solid transparent; border-radius: 3px; }
+        QToolButton:hover { border-color: palette(mid); background: palette(midlight); }
+        QToolButton:checked, QToolButton:pressed { background: palette(highlight);
+                                                 color: palette(highlighted-text); }
+        QToolButton:focus { border-color: palette(highlight); }
+        QLineEdit { padding: 3px 5px; border: 1px solid palette(mid); border-radius: 3px;
+                    background: palette(base); color: palette(text); }
+        QLineEdit:focus { border-color: palette(highlight); }
+        QLineEdit:disabled { color: palette(mid); }
+    )" ) );
+}
+}
 
 QStringList StyleManager::availableStyles()
 {
@@ -114,4 +175,5 @@ void StyleManager::applyStyle( const QString& style )
         qApp->setStyle( style );
         qApp->setStyleSheet( "" );
     }
+    applyInterfaceAppearance();
 }

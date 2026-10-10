@@ -16,6 +16,17 @@ inline const std::array<const char*, 18>& readableColorPalette()
     return colors;
 }
 
+// Saturated alternatives for buttons and keyword emphasis; soft defaults stay unchanged.
+inline const std::array<const char*, 18>& vividColorPalette()
+{
+    static const std::array<const char*, 18> colors = {{
+        "#dc2626", "#ea580c", "#f59e0b", "#facc15", "#65a30d", "#16a34a",
+        "#059669", "#0d9488", "#0891b2", "#0284c7", "#2563eb", "#4338ca",
+        "#7c3aed", "#9333ea", "#c026d3", "#db2777", "#e11d48", "#334155"
+    }};
+    return colors;
+}
+
 inline QColor readableForeground( const QColor& background )
 {
     const auto linear = []( double value ) {

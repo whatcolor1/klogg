@@ -21,6 +21,7 @@
 #include <catch2/catch.hpp>
 
 #include <QApplication>
+#include "styles.h"
 #include <QMetaType>
 #include <QtConcurrent>
 
@@ -70,6 +71,7 @@ class TestRunner : public QObject {
 int main( int argc, char* argv[] )
 {
     QApplication a( argc, argv );
+    StyleManager::applyStyle( StyleManager::defaultPlatformStyle() );
 
     logging::enableLogging();
 

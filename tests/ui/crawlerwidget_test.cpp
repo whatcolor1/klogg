@@ -42,6 +42,11 @@
 #include "highlightersdialog.h"
 #include <QPushButton>
 #include <QScrollArea>
+#include <QMenuBar>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QFontDatabase>
+#include "styles.h"
 #include <qglobal.h>
 #include <qnamespace.h>
 #include <qtestmouse.h>
@@ -180,6 +185,22 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
     }
 
     LinesCount markCount() { return crawler->logFilteredData_->getNbMarks(); }
+
+    void verifyInterfaceFontIsolation()
+    {
+        const auto uiFont = QApplication::font();
+        QFont largeLogFont( "Courier New", 28, QFont::Bold );
+        crawler->logMainView_->updateFont( largeLogFont );
+        REQUIRE( crawler->logMainView_->font().pointSize() == 28 );
+        auto* panel = crawler->findChild<PredefinedFiltersButtonPanel*>();
+        REQUIRE( panel->font() == uiFont );
+        const auto menus = crawler->logMainView_->findChildren<QMenu*>();
+        REQUIRE_FALSE( menus.isEmpty() );
+        for ( auto* menu : menus ) {
+            REQUIRE( menu->font().pointSizeF() == uiFont.pointSizeF() );
+            REQUIRE_FALSE( menu->font().bold() );
+        }
+    }
 
     void setSearchPattern( const QString& pattern )
     {
@@ -568,6 +589,7 @@ TEST_CASE( "Colored keyword and whole-line presets compose and M marks stand out
     auto* panel = visitor.crawler->findChild<PredefinedFiltersButtonPanel*>();
     REQUIRE( panel );
     const QColor blue( "#dbeafe" ), pink( "#ffe4e6" );
+    visitor.verifyInterfaceFontIsolation();
     panel->setFilters( {
         { "Keyword", "000010", false, blue, Mode::Keywords },
         { "Whole line", "000010|000020", true, pink, Mode::WholeLine }
@@ -620,5 +642,77 @@ TEST_CASE( "Readable labels provide eighteen choices and remain scrollable", "[u
     QTest::qWait( 50 );
     REQUIRE( dialog.findChild<QScrollArea*>() );
     dialog.grab().save( "ui-readable-color-labels.png" );
+}
+
+TEST_CASE( "Interface typography and compact colored controls", "[ui][appearance]" )
+{
+    QWidget window;
+    window.setWindowTitle( QString::fromUtf8( "Klogg 界面字体与交互预览" ) );
+    auto* layout = new QVBoxLayout( &window );
+    layout->setContentsMargins( 8, 6, 8, 6 );
+    layout->setSpacing( 6 );
+    auto* bar = new QMenuBar;
+    auto* menu = bar->addMenu( QString::fromUtf8( "编辑(&E)" ) );
+    menu->addAction( QString::fromUtf8( "拷贝(&C)" ) )->setShortcut( QKeySequence::Copy );
+    menu->addAction( QString::fromUtf8( "选择全部(&A)" ) )->setShortcut( QKeySequence::SelectAll );
+    menu->addSeparator();
+    menu->addAction( QString::fromUtf8( "查找(&F)…" ) )->setShortcut( QKeySequence::Find );
+    menu->addAction( QString::fromUtf8( "打开包含此文件的文件夹" ) );
+    bar->addMenu( QString::fromUtf8( "视图(&V)" ) );
+    bar->addMenu( QString::fromUtf8( "工具(&T)" ) );
+    layout->setMenuBar( bar );
+    layout->addWidget( new QLabel( QString::fromUtf8( "界面字体 · 中文与 English 0123456789" ) ) );
+    layout->addWidget( new QLineEdit( QString::fromUtf8( "搜索 error / configure_streams" ) ) );
+    auto* controls = new QHBoxLayout;
+    controls->addWidget( new QPushButton( QString::fromUtf8( "应用" ) ) );
+    auto* disabled = new QPushButton( QString::fromUtf8( "不可用" ) );
+    disabled->setEnabled( false );
+    controls->addWidget( disabled );
+    controls->addStretch();
+    layout->addLayout( controls );
+    auto* panel = new PredefinedFiltersButtonPanel;
+    const QList<PredefinedFilter> filters = {
+        { "configure_streams", "configure_streams", false, QColor( "#dbeafe" ) },
+        { "ProcessRequest() FRO-URO", "ProcessRequest", false, QColor( "#fce7f3" ) },
+        { "error", "error", false, QColor( "#dc2626" ) },
+        { "warning", "warning", false, QColor( "#facc15" ) },
+        { "capture", "capture", false, QColor( "#2563eb" ) }
+    };
+    panel->setFilters( filters );
+    panel->setActiveFilters( { filters[0], filters[2] } );
+    layout->addWidget( panel );
+    window.resize( 1000, 210 );
+    window.show();
+    QTest::qWait( 50 );
+    const auto buttons = panel->findChildren<QToolButton*>();
+    const auto found = std::find_if( buttons.cbegin(), buttons.cend(),
+        []( const auto* button ) { return button->text() == "configure_streams"; } );
+    REQUIRE( found != buttons.cend() );
+    auto* first = *found;
+    REQUIRE( first->icon().isNull() );
+    REQUIRE( first->toolButtonStyle() == Qt::ToolButtonTextOnly );
+    const auto geometry = first->geometry();
+    first->click();
+    REQUIRE( first->geometry() == geometry );
+    REQUIRE_FALSE( first->isChecked() );
+    REQUIRE_FALSE( QApplication::font().bold() );
+    REQUIRE_FALSE( QApplication::font().fixedPitch() );
+    REQUIRE( menu->font().pointSizeF() == QApplication::font().pointSizeF() );
+    for ( const auto* color : vividColorPalette() ) {
+        const QColor background( color );
+        REQUIRE( background.isValid() );
+        const auto fore = readableForeground( background );
+        REQUIRE( fore == QColor( Qt::white ) || fore == QColor( Qt::black )
+                 || fore == QColor( "#18212f" ) );
+    }
+    if ( QGuiApplication::platformName() == "windows" ) {
+        REQUIRE( QFontMetrics( QApplication::font() ).inFont( QChar( 'A' ) ) );
+        window.grab().save( "ui-native-typography.png" );
+        menu->popup( window.mapToGlobal( QPoint( 10, 30 ) ) );
+        QTest::qWait( 50 );
+        menu->grab().save( "ui-native-menu.png" );
+        menu->hide();
+    }
+    else window.grab().save( "ui-compact-controls.png" );
 }
 
