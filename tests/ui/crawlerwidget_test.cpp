@@ -31,6 +31,7 @@
 #include <QTemporaryDir>
 #include "predefinedfiltersbuttonpanel.h"
 #include "sessioninfo.h"
+#include "configuration.h"
 #include <qglobal.h>
 #include <qnamespace.h>
 #include <qtestmouse.h>
@@ -112,6 +113,27 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
     QString filteredViewSelectedText()
     {
         return crawler->filteredView_->getSelectedText();
+    }
+
+    QString firstFilteredLine()
+    {
+        return crawler->logFilteredData_->getNbLine().get() > 0
+            ? crawler->logFilteredData_->getLineString( 0_lnum ) : QString{};
+    }
+
+    bool bothViewsHaveHighlight( const QColor& color )
+    {
+        const auto containsColor = [&color]( QWidget* widget ) {
+            const auto image = widget->grab().toImage();
+            for ( int y = 0; y < image.height(); ++y ) {
+                for ( int x = 0; x < image.width(); ++x ) {
+                    if ( image.pixelColor( x, y ) == color ) return true;
+                }
+            }
+            return false;
+        };
+        return containsColor( crawler->logMainView_->viewport() )
+            && containsColor( crawler->filteredView_->viewport() );
     }
 
     void setSearchPattern( const QString& pattern )
@@ -314,6 +336,23 @@ TEST_CASE( "Preset panel bounds overflow and keeps menu selection visible", "[ui
 
 TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][presets][session]" )
 {
+    auto& config = Configuration::get();
+    struct RestoreHighlight {
+        Configuration& config;
+        bool enabled;
+        bool variate;
+        QColor color;
+        ~RestoreHighlight() {
+            config.setEnableMainSearchHighlight( enabled );
+            config.setVariateMainSearchHighlight( variate );
+            config.setMainSearchBackColor( color );
+        }
+    } restoreHighlight{ config, config.mainSearchHighlight(), config.variateMainSearchHighlight(),
+                        config.mainSearchBackColor() };
+    const QColor highlightColor( 17, 231, 197 );
+    config.setEnableMainSearchHighlight( true );
+    config.setVariateMainSearchHighlight( false );
+    config.setMainSearchBackColor( highlightColor );
     QTemporaryFile file{ "preset_test_XXXXXX" };
     REQUIRE( generateDataFiles( file ) );
     Session session;
@@ -321,6 +360,8 @@ TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][pre
     visitor.crawler.reset( static_cast<CrawlerWidget*>(
         session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
     REQUIRE( waitUiState( [&] { return visitor.isLoadingFinished(); } ) );
+    visitor.crawler->resize( 1600, 1000 );
+    visitor.crawler->show();
     auto* panel = visitor.crawler->findChild<PredefinedFiltersButtonPanel*>();
     REQUIRE( panel );
     const QList<PredefinedFilter> filters = {
@@ -333,12 +374,12 @@ TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][pre
         REQUIRE( button != buttons.cend() );
         (*button)->click();
         REQUIRE( waitUiState( [&] {
-            visitor.selectAllInFilteredView();
-            return visitor.filteredViewSelectedText().contains( filter.pattern );
+            return visitor.firstFilteredLine().contains( filter.pattern );
         } ) );
         REQUIRE( visitor.getLogFilteredNbLines().get() == 1 );
         REQUIRE( (*button)->isChecked() );
         visitor.render();
+        REQUIRE( visitor.bothViewsHaveHighlight( highlightColor ) );
     }
     const auto context = visitor.crawler->context()->toString();
     const auto json = QJsonDocument::fromJson( context.toUtf8() ).object();
@@ -347,6 +388,21 @@ TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][pre
     visitor.crawler->setViewContext( context );
     REQUIRE( panel->activeFilters().size() == 1 );
     REQUIRE( panel->activeFilters().first().name == "Line twenty" );
+    CrawlerWidgetVisitor recovered;
+    recovered.crawler.reset( static_cast<CrawlerWidget*>(
+        session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
+    recovered.crawler->findChild<PredefinedFiltersButtonPanel*>()->setFilters( filters );
+    recovered.crawler->setViewContext( context );
+    REQUIRE( waitUiState( [&] { return recovered.isLoadingFinished(); } ) );
+    REQUIRE( waitUiState( [&] { return recovered.firstFilteredLine().contains( "000020" ); } ) );
+    auto unicodeContext = json;
+    const auto unicode = QString::fromUtf8( "相机错误" );
+    unicodeContext.insert( "ST", unicode );
+    recovered.crawler->setViewContext(
+        QString::fromUtf8( QJsonDocument( unicodeContext ).toJson() ) );
+    const auto recoveredJson = QJsonDocument::fromJson(
+        recovered.crawler->context()->toString().toUtf8() ).object();
+    REQUIRE( recoveredJson.value( "ST" ).toString() == unicode );
 }
 
 TEST_CASE( "Session checkpoints round trip current tab and Unicode context", "[ui][session]" )

@@ -75,6 +75,7 @@
 #include "infoline.h"
 #include "quickfindpattern.h"
 #include "savedsearches.h"
+#include <QSignalBlocker>
 #include "shortcuts.h"
 
 static constexpr char AnsiColorSequenceRegex[] = "\\x1B\\[([0-9]{1,4}((;|:)[0-9]{1,3})*)?[mK]";
@@ -1694,6 +1695,8 @@ void CrawlerWidget::replaceCurrentSearch( const QString& searchText )
 // called when the SavedSearch has been changed.
 void CrawlerWidget::updateSearchCombo()
 {
+    // Rebuilding history must not clear the active preset through transient empty text.
+    const QSignalBlocker blocker( searchLineEdit_ );
     const QString text = searchLineEdit_->lineEdit()->text();
     searchLineEdit_->clear();
 
