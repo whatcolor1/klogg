@@ -115,3 +115,11 @@ jobs:
           path: |
             build_root/Testing/Temporary/
             build_root/tests/ui/highlight-*.png
+      - name: Upload UI previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-ui-previews
+          path: build_root/tests/ui/ui-*.png
+          if-no-files-found: ignore
+          retention-days: 7

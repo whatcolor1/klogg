@@ -57,7 +57,10 @@ void PredefinedFiltersCollection::retrieveFromStorage( QSettings& settings )
 
                 filters_.push_back( { settings.value( "name" ).toString(),
                                       settings.value( "filter" ).toString(),
-                                      settings.value( "regex", true ).toBool() } );
+                                      settings.value( "regex", true ).toBool(),
+                                      QColor( settings.value( "color" ).toString() ),
+                                      static_cast<PredefinedFilter::HighlightMode>(
+                                          qBound( 0, settings.value( "highlight_mode", 0 ).toInt(), 2 ) ) } );
             }
             settings.endArray();
         }
@@ -84,11 +87,14 @@ void PredefinedFiltersCollection::saveToStorage( QSettings& settings ) const
         settings.setValue( "name", filter.name );
         settings.setValue( "filter", filter.pattern );
         settings.setValue( "regex", filter.useRegex );
+        settings.setValue( "color", filter.color.isValid() ? filter.color.name( QColor::HexArgb ) : QString{} );
+        settings.setValue( "highlight_mode", static_cast<int>( filter.highlightMode ) );
 
         arrayIndex++;
     }
     settings.endArray();
     settings.endGroup();
+    settings.sync();
 }
 
 void PredefinedFiltersCollection::saveToStorage(

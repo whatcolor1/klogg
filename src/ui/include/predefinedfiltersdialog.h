@@ -73,6 +73,8 @@ class PredefinedFiltersDialog : public QDialog, public Ui::PredefinedFiltersDial
 
   private:
     void addFilterRow( const QString& newFilter );
+    void setFilterRow( int row, const PredefinedFilter& filter );
+    PredefinedFilter readFilterRow( int row ) const;
     void populateFiltersTable( const PredefinedFiltersCollection::Collection& filters );
 
     void swapFilters( int currentRow, int newRow, int column );

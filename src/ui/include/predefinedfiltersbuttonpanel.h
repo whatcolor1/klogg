@@ -20,6 +20,7 @@ class PredefinedFiltersButtonPanel : public QWidget {
 
   Q_SIGNALS:
     void filtersChanged( const QList<PredefinedFilter>& filters );
+    void editFiltersRequested();
 
   protected:
     void resizeEvent( QResizeEvent* event ) override;
@@ -32,4 +33,5 @@ class PredefinedFiltersButtonPanel : public QWidget {
     QVector<QToolButton*> buttons_;
     QToolButton* more_;
     QMenu* menu_;
+    int preferredHeight_ = 0;
 };

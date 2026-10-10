@@ -378,6 +378,7 @@ class CrawlerWidget : public QSplitter,
     QStandardItemModel* visibilityModel_;
 
     PredefinedFiltersComboBox* predefinedFilters_;
+    void updatePredefinedFilterHighlights() const;
     PredefinedFiltersButtonPanel* predefinedFiltersPanel_;
     bool restoredSearchPending_ = false;
     bool applyingPredefinedFilter_ = false;

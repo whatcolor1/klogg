@@ -1,10 +1,12 @@
 #include "predefinedfiltersbuttonpanel.h"
+#include "readablecolors.h"
 
 #include <QAction>
 #include <QEvent>
 #include <QMenu>
 #include <QResizeEvent>
 #include <QToolButton>
+#include <QPainter>
 #include <algorithm>
 
 namespace {
@@ -24,9 +26,14 @@ PredefinedFiltersButtonPanel::PredefinedFiltersButtonPanel( QWidget* parent )
     more_->setPopupMode( QToolButton::InstantPopup );
     more_->setMenu( menu_ );
     more_->hide();
-    setStyleSheet( "QToolButton:checked { background-color: palette(highlight); "
-                   "color: palette(highlighted-text); border: 2px solid palette(highlight); "
-                   "border-radius: 3px; font-weight: bold; }" );
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QWidget::customContextMenuRequested, this, [this]( const QPoint& pos ) {
+        QMenu menu;
+        menu.addAction( tr( "Edit filters and colors…" ), this,
+                        &PredefinedFiltersButtonPanel::editFiltersRequested );
+        menu.exec( mapToGlobal( pos ) );
+    } );
+    more_->setToolTip( tr( "Additional filters; each filter can be switched on independently." ) );
 }
 
 void PredefinedFiltersButtonPanel::setFilters( const QList<PredefinedFilter>& filters )
@@ -38,7 +45,18 @@ void PredefinedFiltersButtonPanel::setFilters( const QList<PredefinedFilter>& fi
     for ( const auto& filter : filters_ ) {
         auto* button = new QToolButton( this );
         button->setText( filter.name );
-        button->setToolTip( filter.pattern );
+        const auto color = filter.color.isValid() ? filter.color : automaticFilterColor( filter.name );
+        const auto fore = readableForeground( color );
+        const auto border = color.lightness() > 128 ? color.darker( 160 ) : color.lighter( 160 );
+        button->setStyleSheet( QString(
+            "QToolButton { background: %1; color: %2; border: 2px solid transparent; "
+            "border-bottom-color: %3; border-radius: 4px; padding: 3px 8px; } "
+            "QToolButton:hover { border-color: %3; } "
+            "QToolButton:checked { border: 2px solid %2; } "
+            "QToolButton:focus { border: 2px dashed %2; }" )
+            .arg( color.name(), fore.name(), border.name() ) );
+        button->setToolTip( filter.pattern + "\n" + tr( "Click to toggle; right-click to edit colors and highlighting." ) );
+        button->setAccessibleName( filter.name );
         button->setCheckable( true );
         connect( button, &QToolButton::clicked, this, [this] {
             QList<PredefinedFilter> selected;
@@ -61,12 +79,27 @@ void PredefinedFiltersButtonPanel::setActiveFilters( const QList<PredefinedFilte
     for ( const auto& f : requested ) {
         if ( std::any_of( filters_.cbegin(), filters_.cend(),
              [&f]( const auto& candidate ) { return sameFilter( f, candidate ); } ) ) {
-            active_.append( f );
+            const auto current = std::find_if( filters_.cbegin(), filters_.cend(),
+                [&f]( const auto& candidate ) { return sameFilter( f, candidate ); } );
+            active_.append( *current );
         }
     }
     for ( int i = 0; i < buttons_.size(); ++i ) {
         buttons_[i]->setChecked( std::any_of( active_.cbegin(), active_.cend(),
             [this, i]( const auto& f ) { return sameFilter( f, filters_[i] ); } ) );
+        // Reserve the same icon width in both states so toggling never moves buttons.
+        QPixmap check( 16, 16 );
+        check.fill( Qt::transparent );
+        if ( buttons_[i]->isChecked() ) {
+            QPainter painter( &check );
+            const auto color = filters_[i].color.isValid() ? filters_[i].color
+                : automaticFilterColor( filters_[i].name );
+            painter.setRenderHint( QPainter::Antialiasing );
+            painter.setPen( QPen( readableForeground( color ), 2.2 ) );
+            painter.drawLine( 3, 8, 6, 11 );
+            painter.drawLine( 6, 11, 13, 4 );
+        }
+        buttons_[i]->setIcon( QIcon( check ) );
     }
     for ( auto* action : menu_->actions() ) {
         const auto i = action->data().toInt();
@@ -84,7 +117,7 @@ QSize PredefinedFiltersButtonPanel::minimumSizeHint() const
 
 QSize PredefinedFiltersButtonPanel::sizeHint() const
 {
-    return { 200, filters_.isEmpty() ? 0 : 2 * ( more_->sizeHint().height() + 4 ) + 4 };
+    return { 200, preferredHeight_ };
 }
 
 void PredefinedFiltersButtonPanel::resizeEvent( QResizeEvent* event )
@@ -107,7 +140,6 @@ void PredefinedFiltersButtonPanel::arrangeButtons()
     const int available = std::max( 0, width() - 2 * gap );
     int rowHeight = more_->sizeHint().height();
     for ( auto* b : buttons_ ) rowHeight = std::max( rowHeight, b->sizeHint().height() );
-    setFixedHeight( filters_.isEmpty() ? 0 : 2 * rowHeight + 3 * gap );
     // First try without overflow, then reserve the More button on row two.
     QVector<QRect> positions;
     const auto pack = [&]( bool reserveMore ) {
@@ -127,6 +159,14 @@ void PredefinedFiltersButtonPanel::arrangeButtons()
     pack( false );
     const bool overflow = positions.size() < buttons_.size();
     if ( overflow ) pack( true );
+    const int rows = filters_.isEmpty() ? 0
+        : ( overflow || ( !positions.isEmpty() && positions.last().y() > gap ) ? 2 : 1 );
+    const int height = rows == 0 ? 0 : rows * rowHeight + ( rows + 1 ) * gap;
+    if ( preferredHeight_ != height ) {
+        preferredHeight_ = height;
+        setFixedHeight( height );
+        updateGeometry();
+    }
     menu_->clear();
     bool hiddenActive = false;
     for ( int i = 0; i < buttons_.size(); ++i ) {
@@ -136,6 +176,11 @@ void PredefinedFiltersButtonPanel::arrangeButtons()
         else {
             auto* action = menu_->addAction( filters_[i].name );
             action->setToolTip( filters_[i].pattern );
+            const auto color = filters_[i].color.isValid() ? filters_[i].color
+                : automaticFilterColor( filters_[i].name );
+            QPixmap swatch( 16, 16 );
+            swatch.fill( color );
+            action->setIcon( QIcon( swatch ) );
             action->setCheckable( true );
             action->setChecked( b->isChecked() );
             action->setData( i );

@@ -41,6 +41,7 @@
 #define PREDEFINEDFILTERS_H_
 
 #include <QList>
+#include <QColor>
 #include <QString>
 
 #include "persistable.h"
@@ -49,6 +50,10 @@ struct PredefinedFilter {
     QString name;
     QString pattern;
     bool useRegex;
+    // Existing presets retain the normal search highlight until explicitly styled.
+    enum class HighlightMode { Search = 0, Keywords = 1, WholeLine = 2 };
+    QColor color;
+    HighlightMode highlightMode = HighlightMode::Search;
 };
 
 // Represents collection of filters read from settings file.

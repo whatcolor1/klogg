@@ -223,6 +223,7 @@ void CrawlerWidget::reloadPredefinedFilters() const
     predefinedFilters_->populatePredefinedFilters();
     predefinedFiltersPanel_->setFilters( PredefinedFiltersCollection::getSynced().getFilters() );
     predefinedFilters_->setSelectedFilters( predefinedFiltersPanel_->activeFilters() );
+    updatePredefinedFilterHighlights();
 }
 
 QString CrawlerWidget::encodingText() const
@@ -428,6 +429,13 @@ void CrawlerWidget::startNewSearch()
     replaceCurrentSearch( searchLineEdit_->currentText() );
 }
 
+void CrawlerWidget::updatePredefinedFilterHighlights() const
+{
+    const auto active = predefinedFiltersPanel_->activeFilters();
+    logMainView_->setPredefinedFilterHighlights( active, matchCaseButton_->isChecked() );
+    filteredView_->setPredefinedFilterHighlights( active, matchCaseButton_->isChecked() );
+}
+
 void CrawlerWidget::updatePredefinedFiltersWidget()
 {
     predefinedFilters_->updateSearchPattern( searchLineEdit_->currentText(),
@@ -440,6 +448,7 @@ void CrawlerWidget::updatePredefinedFiltersWidget()
     }
     if ( activePattern == text ) {
         predefinedFilters_->setSelectedFilters( predefinedFiltersPanel_->activeFilters() );
+        updatePredefinedFilterHighlights();
         return;
     }
     const QStringList parts = booleanButton_->isChecked()
@@ -451,6 +460,7 @@ void CrawlerWidget::updatePredefinedFiltersWidget()
     }
     predefinedFiltersPanel_->setActiveFilters( active );
     predefinedFilters_->setSelectedFilters( active );
+    updatePredefinedFilterHighlights();
 }
 
 void CrawlerWidget::stopSearch()
@@ -893,6 +903,7 @@ void CrawlerWidget::setSearchPatternFromPredefinedFilters( const QList<Predefine
     applyingPredefinedFilter_ = false;
     predefinedFiltersPanel_->setActiveFilters( filters );
     predefinedFilters_->setSelectedFilters( filters );
+    updatePredefinedFilterHighlights();
     startNewSearch();
 }
 
@@ -1235,6 +1246,8 @@ void CrawlerWidget::setup()
     connect( searchLineEdit_, QOverload<int>::of( &QComboBox::currentIndexChanged ), this,
              [ this ]( auto ) { updatePredefinedFiltersWidget(); } );
 
+    connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::editFiltersRequested, this,
+             [this] { Q_EMIT saveCurrentSearchAsPredefinedFilter( QString{} ); } );
     connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::filtersChanged, this,
              &CrawlerWidget::setSearchPatternFromPredefinedFilters );
 
@@ -1367,6 +1380,7 @@ void CrawlerWidget::changeFilteredView( int tabIndex )
 
         logMainView_->useNewFiltering( logFilteredData_.get() );
         changeFilteredViewVisibility( visibilityBox_->currentIndex() );
+        updatePredefinedFilterHighlights();
     }
 }
 
@@ -1664,6 +1678,7 @@ void CrawlerWidget::replaceCurrentSearch( const QString& searchText )
             searchInfoLine_->hide();
             logMainView_->setSearchPattern( regexpPattern );
             filteredView_->setSearchPattern( regexpPattern );
+            updatePredefinedFilterHighlights();
         }
         else {
             // The regexp is wrong

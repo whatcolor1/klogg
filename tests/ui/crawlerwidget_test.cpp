@@ -32,6 +32,14 @@
 #include "predefinedfiltersbuttonpanel.h"
 #include "sessioninfo.h"
 #include "configuration.h"
+#include "readablecolors.h"
+#include "colorlabelsmanager.h"
+#include "ui_predefinedfiltersdialog.h"
+#include "predefinedfiltersdialog.h"
+#include "ui_highlightersdialog.h"
+#include "highlightersdialog.h"
+#include <QPushButton>
+#include <QScrollArea>
 #include <qglobal.h>
 #include <qnamespace.h>
 #include <qtestmouse.h>
@@ -149,6 +157,27 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
         crawler->logMainView_->viewport()->grab().save( "highlight-main.png" );
         crawler->filteredView_->viewport()->grab().save( "highlight-filtered.png" );
     }
+
+    qsizetype filteredColorPixels( const QColor& color )
+    {
+        const auto image = crawler->filteredView_->viewport()->grab().toImage();
+        qsizetype pixels = 0;
+        for ( int y = 0; y < image.height(); ++y )
+            for ( int x = 0; x < image.width(); ++x )
+                if ( image.pixelColor( x, y ) == color ) ++pixels;
+        return pixels;
+    }
+
+    void toggleMark()
+    {
+        crawler->logMainView_->selectAndDisplayLine( 10_lnum );
+        crawler->activateWindow();
+        crawler->logMainView_->setFocus();
+        QTest::qWait( 20 );
+        QTest::keyClick( crawler->logMainView_, Qt::Key_M );
+    }
+
+    LinesCount markCount() { return crawler->logFilteredData_->getNbMarks(); }
 
     void setSearchPattern( const QString& pattern )
     {
@@ -333,6 +362,7 @@ TEST_CASE( "Preset panel bounds overflow and keeps menu selection visible", "[ui
         REQUIRE( panel.rect().contains( button->geometry() ) );
     }
     REQUIRE( rows.size() <= 2 );
+    const int twoRowHeight = panel.height();
     QSignalSpy activated( &panel, &PredefinedFiltersButtonPanel::filtersChanged );
     auto* overflowAction = more->menu()->actions().last();
     overflowAction->trigger();
@@ -342,10 +372,15 @@ TEST_CASE( "Preset panel bounds overflow and keeps menu selection visible", "[ui
     panel.resize( 10000, panel.height() );
     QTest::qWait( 20 );
     REQUIRE( more->isHidden() );
+    REQUIRE( panel.height() < twoRowHeight );
+    const int oneRowHeight = panel.height();
     panel.resize( 1, panel.height() );
     QTest::qWait( 20 );
     REQUIRE_FALSE( more->isHidden() );
     REQUIRE( more->menu()->actions().size() == filters.size() );
+    REQUIRE( panel.height() > oneRowHeight );
+    panel.setFilters( {} );
+    REQUIRE( panel.height() == 0 );
 }
 
 TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][presets][session]" )
@@ -463,4 +498,122 @@ TEST_CASE( "Session checkpoints round trip current tab and Unicode context", "[u
     REQUIRE( restored.currentIndex( "window" ) == 0 );
     REQUIRE( restored.openFiles( "window" ).size() == 2 );
     REQUIRE( restored.openFiles( "window" ).front().viewContext == unicode );
+}
+
+TEST_CASE( "Preset colors persist, preserve legacy settings, and move with editor rows", "[ui][presets][colors]" )
+{
+    using Mode = PredefinedFilter::HighlightMode;
+    const QList<PredefinedFilter> filters = {
+        { "Error", "error", false, QColor( "#ffe4e6" ), Mode::WholeLine },
+        { "Streams", "configure_streams", false, QColor( "#dbeafe" ), Mode::Keywords }
+    };
+    QTemporaryDir directory;
+    REQUIRE( directory.isValid() );
+    QSettings settings( directory.filePath( "filters.conf" ), QSettings::IniFormat );
+    PredefinedFiltersCollection collection;
+    collection.setFilters( filters );
+    collection.saveToStorage( settings );
+    PredefinedFiltersCollection restored;
+    restored.retrieveFromStorage( settings );
+    REQUIRE( restored.getFilters().size() == 2 );
+    REQUIRE( restored.getFilters()[0].color == filters[0].color );
+    REQUIRE( restored.getFilters()[0].highlightMode == Mode::WholeLine );
+    REQUIRE( restored.getFilters()[1].highlightMode == Mode::Keywords );
+    settings.remove( "PredefinedFiltersCollection/filters/1/color" );
+    settings.remove( "PredefinedFiltersCollection/filters/1/highlight_mode" );
+    restored.retrieveFromStorage( settings );
+    REQUIRE_FALSE( restored.getFilters()[0].color.isValid() );
+    REQUIRE( restored.getFilters()[0].highlightMode == Mode::Search );
+
+    auto& presets = PredefinedFiltersCollection::getSynced();
+    struct RestorePresets {
+        QList<PredefinedFilter> filters;
+        ~RestorePresets() { PredefinedFiltersCollection::get().saveToStorage( filters ); }
+    } restore{ presets.getFilters() };
+    presets.saveToStorage( filters );
+    PredefinedFiltersDialog dialog;
+    dialog.show();
+    QTest::qWait( 50 );
+    REQUIRE( dialog.filtersTableWidget->columnCount() == 5 );
+    dialog.filtersTableWidget->setCurrentCell( 0, 0 );
+    dialog.downButton->click();
+    REQUIRE( dialog.filtersTableWidget->item( 1, 0 )->text() == "Error" );
+    const auto* color = dialog.filtersTableWidget->cellWidget( 1, 3 );
+    REQUIRE( color->property( "filterColor" ).value<QColor>() == filters[0].color );
+    const auto* mode = qobject_cast<QComboBox*>( dialog.filtersTableWidget->cellWidget( 1, 4 ) );
+    REQUIRE( mode );
+    REQUIRE( mode->currentIndex() == 2 );
+    dialog.buttonBox->button( QDialogButtonBox::Apply )->click();
+    const auto saved = PredefinedFiltersCollection::get().getFilters();
+    REQUIRE( saved[1].name == "Error" );
+    REQUIRE( saved[1].color == filters[0].color );
+    REQUIRE( saved[1].highlightMode == Mode::WholeLine );
+    dialog.grab().save( "ui-predefined-filter-editor.png" );
+}
+
+TEST_CASE( "Colored keyword and whole-line presets compose and M marks stand out", "[ui][presets][colors]" )
+{
+    using Mode = PredefinedFilter::HighlightMode;
+    QTemporaryFile file{ "colored_preset_XXXXXX" };
+    REQUIRE( generateDataFiles( file ) );
+    Session session;
+    CrawlerWidgetVisitor visitor;
+    visitor.crawler.reset( static_cast<CrawlerWidget*>(
+        session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
+    REQUIRE( waitUiState( [&] { return visitor.isLoadingFinished(); } ) );
+    visitor.crawler->resize( 1400, 900 );
+    visitor.crawler->show();
+    auto* panel = visitor.crawler->findChild<PredefinedFiltersButtonPanel*>();
+    REQUIRE( panel );
+    const QColor blue( "#dbeafe" ), pink( "#ffe4e6" );
+    panel->setFilters( {
+        { "Keyword", "000010", false, blue, Mode::Keywords },
+        { "Whole line", "000010|000020", true, pink, Mode::WholeLine }
+    } );
+    const auto click = [panel]( const QString& name ) {
+        for ( auto* button : panel->findChildren<QToolButton*>() )
+            if ( button->text() == name ) { button->click(); return; }
+        FAIL( "Preset button missing" );
+    };
+    click( "Keyword" );
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines() == 1_lcount; } ) );
+    REQUIRE( waitUiState( [&] { return visitor.bothViewsHaveHighlight( blue ); } ) );
+    const auto keywordPixels = visitor.filteredColorPixels( blue );
+    REQUIRE( keywordPixels > 0 );
+    click( "Whole line" );
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines() == 2_lcount; } ) );
+    REQUIRE( waitUiState( [&] {
+        return visitor.bothViewsHaveHighlight( blue ) && visitor.bothViewsHaveHighlight( pink );
+    } ) );
+    REQUIRE( visitor.filteredColorPixels( pink ) > 4 * keywordPixels );
+    visitor.crawler->grab().save( "ui-colored-filter-panel.png" );
+    click( "Whole line" );
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines() == 1_lcount; } ) );
+    REQUIRE( waitUiState( [&] { return visitor.filteredColorPixels( pink ) == 0; } ) );
+    visitor.toggleMark();
+    REQUIRE( waitUiState( [&] { return visitor.markCount() == 1_lcount; } ) );
+    REQUIRE( waitUiState( [&] { return visitor.bothViewsHaveHighlight( QColor( "#c2410c" ) ); } ) );
+    visitor.crawler->grab().save( "ui-prominent-m-mark.png" );
+    visitor.toggleMark();
+    REQUIRE( waitUiState( [&] { return visitor.markCount() == 0_lcount; } ) );
+}
+
+TEST_CASE( "Readable labels provide eighteen choices and remain scrollable", "[ui][colors]" )
+{
+    const auto labels = HighlighterSetCollection::getSynced().quickHighlighters();
+    REQUIRE( labels.size() == 18 );
+    for ( const auto& background : readableColorPalette() ) {
+        REQUIRE( readableForeground( QColor( background ) ) == QColor( "#18212f" ) );
+    }
+    ColorLabelsManager manager;
+    manager.setColorLabel( 17, "last color" );
+    REQUIRE( manager.colorLabels().size() == 18 );
+    REQUIRE( manager.colorLabels()[17].contains( "last color" ) );
+    HighlightersDialog dialog;
+    dialog.tabWidget->setCurrentIndex( 1 );
+    dialog.resize( 900, 560 );
+    dialog.show();
+    QTest::qWait( 50 );
+    REQUIRE( dialog.findChild<QScrollArea*>() );
+    dialog.grab().save( "ui-readable-color-labels.png" );
 }

@@ -49,6 +49,8 @@
 #include "containers.h"
 #include "dispatch_to.h"
 #include "highlightersdialog.h"
+#include <QScrollArea>
+#include <QVBoxLayout>
 #include "highlighterset.h"
 #include "iconloader.h"
 #include "log.h"
@@ -107,6 +109,18 @@ HighlightersDialog::HighlightersDialog( QWidget* parent )
     if ( !highlighterSetCollection_.highlighters_.empty() ) {
         setCurrentRow( 0 );
     }
+
+    // More color labels should remain usable at small window sizes and high DPI.
+    auto* labelsTab = quickHighlightLayout->parentWidget();
+    auto* labelsContents = new QWidget;
+    labelsContents->setLayout( quickHighlightLayout );
+    auto* labelsScroll = new QScrollArea( labelsTab );
+    labelsScroll->setWidgetResizable( true );
+    labelsScroll->setFrameShape( QFrame::NoFrame );
+    labelsScroll->setWidget( labelsContents );
+    auto* labelsLayout = new QVBoxLayout( labelsTab );
+    labelsLayout->setContentsMargins( 0, 0, 0, 0 );
+    labelsLayout->addWidget( labelsScroll );
 
     quickHighlightLayout->removeWidget( colorLabelsPlaceholder );
     quickHighlightLayout->removeWidget( colorLabelsForeColor );

@@ -39,6 +39,12 @@
 #include "predefinedfiltersdialog.h"
 
 #include <QDialogButtonBox>
+#include <QComboBox>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QRegularExpression>
+#include "highlighteredit.h"
+#include "readablecolors.h"
 #include <QFileDialog>
 #include <QTimer>
 #include <QToolButton>
@@ -86,6 +92,10 @@ PredefinedFiltersDialog::PredefinedFiltersDialog( QWidget* parent )
     : QDialog( parent )
 {
     setupUi( this );
+    resize( 1000, 560 );
+    setMinimumSize( 700, 360 );
+    filtersTableWidget->setAlternatingRowColors( true );
+    filtersTableWidget->setSelectionMode( QAbstractItemView::SingleSelection );
 
     populateFiltersTable( PredefinedFiltersCollection::getSynced().getFilters() );
 
@@ -144,7 +154,7 @@ void PredefinedFiltersDialog::onCurrentCellChanged( int currentRow, int currentC
 void PredefinedFiltersDialog::updateUpDownButtons( int currentRow )
 {
     upButton->setEnabled( currentRow > 0 );
-    downButton->setEnabled( currentRow < filtersTableWidget->rowCount() - 1 );
+    downButton->setEnabled( currentRow >= 0 && currentRow < filtersTableWidget->rowCount() - 1 );
 }
 
 void PredefinedFiltersDialog::populateFiltersTable(
@@ -153,24 +163,15 @@ void PredefinedFiltersDialog::populateFiltersTable(
     filtersTableWidget->clear();
 
     filtersTableWidget->setRowCount( static_cast<int>( filters.size() ) );
-    filtersTableWidget->setColumnCount( 3 );
-
-    filtersTableWidget->setHorizontalHeaderLabels( QStringList() << tr( "Name" ) << tr( "Pattern" )
-                                                                 << tr( "Regex" ) );
-
-    int filterIndex = 0;
-    for ( const auto& filter : filters ) {
-        filtersTableWidget->setItem( filterIndex, 0, new QTableWidgetItem( filter.name ) );
-        filtersTableWidget->setItem( filterIndex, 1, new QTableWidgetItem( filter.pattern ) );
-        auto* regexCheckbox = new CenteredCheckbox;
-        regexCheckbox->setChecked( filter.useRegex );
-        filtersTableWidget->setCellWidget( filterIndex, 2, regexCheckbox );
-
-        filterIndex++;
-    }
-
-    filtersTableWidget->horizontalHeader()->setSectionResizeMode( 0, QHeaderView::ResizeToContents );
-    filtersTableWidget->horizontalHeader()->setSectionResizeMode( 1, QHeaderView::Stretch );
+    filtersTableWidget->setColumnCount( 5 );
+    filtersTableWidget->setHorizontalHeaderLabels( {
+        tr( "Name" ), tr( "Pattern" ), tr( "Regex" ), tr( "Color" ), tr( "Highlight" ) } );
+    for ( int i = 0; i < filters.size(); ++i ) setFilterRow( i, filters[i] );
+    auto* header = filtersTableWidget->horizontalHeader();
+    header->setSectionResizeMode( 0, QHeaderView::Interactive );
+    header->resizeSection( 0, 180 );
+    header->setSectionResizeMode( 1, QHeaderView::Stretch );
+    for ( int i = 2; i < 5; ++i ) header->setSectionResizeMode( i, QHeaderView::ResizeToContents );
     filtersTableWidget->verticalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
     filtersTableWidget->setWordWrap( false );
 
@@ -182,31 +183,63 @@ void PredefinedFiltersDialog::saveSettings() const
     PredefinedFiltersCollection::getSynced().saveToStorage( readFiltersTable() );
 }
 
+void PredefinedFiltersDialog::setFilterRow( int row, const PredefinedFilter& filter )
+{
+    filtersTableWidget->setItem( row, 0, new QTableWidgetItem( filter.name ) );
+    filtersTableWidget->setItem( row, 1, new QTableWidgetItem( filter.pattern ) );
+    auto* regex = new CenteredCheckbox;
+    regex->setChecked( filter.useRegex );
+    filtersTableWidget->setCellWidget( row, 2, regex );
+    auto* color = new QPushButton( "Aa" );
+    color->setObjectName( "filterColorButton" );
+    color->setMinimumWidth( 64 );
+    const auto updateColor = [color]( const QColor& value ) {
+        color->setProperty( "filterColor", value );
+        color->setStyleSheet( QString( "QPushButton { background-color: %1; color: %2; "
+            "border: 1px solid %2; border-radius: 3px; padding: 4px 12px; }" )
+            .arg( value.name(), readableForeground( value ).name() ) );
+        color->setToolTip( value.name() );
+    };
+    updateColor( filter.color.isValid() ? filter.color : automaticFilterColor( filter.name ) );
+    auto* mode = new QComboBox;
+    mode->setObjectName( "filterHighlightMode" );
+    mode->addItems( { tr( "Search highlight" ), tr( "Keywords" ), tr( "Whole line" ) } );
+    mode->setCurrentIndex( static_cast<int>( filter.highlightMode ) );
+    mode->setToolTip( tr( "Applied to enabled filters in both log views. When whole-line rules overlap, the first filter wins; keyword colors remain visible." ) );
+    connect( color, &QPushButton::clicked, color, [color, mode, updateColor] {
+        QColor chosen;
+        if ( HighlighterEdit::showColorPicker( color->property( "filterColor" ).value<QColor>(), chosen ) ) {
+            chosen.setAlpha( 255 );
+            updateColor( chosen );
+            if ( mode->currentIndex() == 0 ) mode->setCurrentIndex( 1 );
+        }
+    } );
+    filtersTableWidget->setCellWidget( row, 3, color );
+    filtersTableWidget->setCellWidget( row, 4, mode );
+}
+
+PredefinedFilter PredefinedFiltersDialog::readFilterRow( int row ) const
+{
+    PredefinedFilter filter;
+    if ( auto* item = filtersTableWidget->item( row, 0 ) ) filter.name = item->text();
+    if ( auto* item = filtersTableWidget->item( row, 1 ) ) filter.pattern = item->text();
+    auto* regex = static_cast<CenteredCheckbox*>( filtersTableWidget->cellWidget( row, 2 ) );
+    filter.useRegex = regex && regex->isChecked();
+    auto* color = filtersTableWidget->cellWidget( row, 3 );
+    if ( color ) filter.color = color->property( "filterColor" ).value<QColor>();
+    auto* mode = qobject_cast<QComboBox*>( filtersTableWidget->cellWidget( row, 4 ) );
+    if ( mode ) filter.highlightMode = static_cast<PredefinedFilter::HighlightMode>( mode->currentIndex() );
+    return filter;
+}
+
 PredefinedFiltersCollection::Collection PredefinedFiltersDialog::readFiltersTable() const
 {
-    const auto rows = filtersTableWidget->rowCount();
-
-    PredefinedFiltersCollection::Collection currentFilters;
-
-    for ( auto i = 0; i < rows; ++i ) {
-        if ( nullptr == filtersTableWidget->item( i, 0 )
-             || nullptr == filtersTableWidget->item( i, 1 ) ) {
-            continue;
-        }
-
-        const auto name = filtersTableWidget->item( i, 0 )->text();
-        const auto value = filtersTableWidget->item( i, 1 )->text();
-
-        const auto useRegexCheckbox
-            = static_cast<CenteredCheckbox*>( filtersTableWidget->cellWidget( i, 2 ) );
-        const auto useRegex = useRegexCheckbox ? useRegexCheckbox->isChecked() : false;
-
-        if ( !name.isEmpty() && !value.isEmpty() ) {
-            currentFilters.push_back( { name, value, useRegex } );
-        }
+    PredefinedFiltersCollection::Collection filters;
+    for ( int row = 0; row < filtersTableWidget->rowCount(); ++row ) {
+        const auto filter = readFilterRow( row );
+        if ( !filter.name.isEmpty() && !filter.pattern.isEmpty() ) filters.append( filter );
     }
-
-    return currentFilters;
+    return filters;
 }
 
 void PredefinedFiltersDialog::addFilter()
@@ -216,18 +249,17 @@ void PredefinedFiltersDialog::addFilter()
 
 void PredefinedFiltersDialog::addFilterRow( const QString& newFilter )
 {
-    const auto newRow = filtersTableWidget->rowCount();
-    filtersTableWidget->setRowCount( newRow + 1 );
-    filtersTableWidget->setItem( newRow, 1, new QTableWidgetItem( newFilter ) );
-    filtersTableWidget->setItem( newRow, 0, new QTableWidgetItem( "" ) );
-    auto regexCheckBox = new CenteredCheckbox;
-    filtersTableWidget->setCellWidget( newRow, 2, regexCheckBox );
-
-    filtersTableWidget->scrollToItem( filtersTableWidget->item( newRow, 0 ) );
-    filtersTableWidget->setCurrentCell( newRow, 0 );
-    filtersTableWidget->editItem( filtersTableWidget->item( newRow, 0 ) );
-
-    filtersTableWidget->resizeRowToContents( newRow );
+    const int row = filtersTableWidget->rowCount();
+    filtersTableWidget->insertRow( row );
+    PredefinedFilter filter{ {}, newFilter, false };
+    filter.color = QColor( readableColorPalette()[ static_cast<size_t>( row ) % readableColorPalette().size() ] );
+    filter.highlightMode = PredefinedFilter::HighlightMode::Keywords;
+    setFilterRow( row, filter );
+    filtersTableWidget->setCurrentCell( row, 0 );
+    filtersTableWidget->scrollToItem( filtersTableWidget->item( row, 0 ) );
+    filtersTableWidget->editItem( filtersTableWidget->item( row, 0 ) );
+    filtersTableWidget->resizeRowToContents( row );
+    updateButtons();
 }
 
 void PredefinedFiltersDialog::removeFilter()
@@ -259,29 +291,12 @@ void PredefinedFiltersDialog::moveFilterDown()
 
 void PredefinedFiltersDialog::swapFilters( int currentRow, int newRow, int selectedColumn )
 {
-    dispatchToMainThread( [ this, currentRow, newRow, selectedColumn ] {
-        for ( int column = 0; column < filtersTableWidget->columnCount(); ++column ) {
-            auto currentUseRegex = static_cast<CenteredCheckbox*>(
-                filtersTableWidget->cellWidget( currentRow, column ) );
-            auto newUseRegex = static_cast<CenteredCheckbox*>(
-                filtersTableWidget->cellWidget( newRow, column ) );
-
-            if ( currentUseRegex && newUseRegex ) {
-                const auto currentCheckState = currentUseRegex->isChecked();
-                const auto newCheckState = newUseRegex->isChecked();
-                currentUseRegex->setChecked( newCheckState );
-                newUseRegex->setChecked( currentCheckState );
-            }
-            else {
-                auto currentItem = filtersTableWidget->takeItem( currentRow, column );
-                auto newItem = filtersTableWidget->takeItem( newRow, column );
-
-                filtersTableWidget->setItem( newRow, column, currentItem );
-                filtersTableWidget->setItem( currentRow, column, newItem );
-            }
-        }
-        filtersTableWidget->setCurrentCell( newRow, selectedColumn );
-    } );
+    if ( newRow < 0 || newRow >= filtersTableWidget->rowCount() ) return;
+    PredefinedFiltersCollection::Collection rows;
+    for ( int row = 0; row < filtersTableWidget->rowCount(); ++row ) rows.append( readFilterRow( row ) );
+    rows.swapItemsAt( currentRow, newRow );
+    populateFiltersTable( rows );
+    filtersTableWidget->setCurrentCell( newRow, selectedColumn );
 }
 
 void PredefinedFiltersDialog::importFilters()
@@ -327,6 +342,23 @@ void PredefinedFiltersDialog::resolveStandardButton( QAbstractButton* button )
     LOG_DEBUG << "PredefinedFiltersDialog::resolveStandardButton";
 
     const auto role = buttonBox->buttonRole( button );
+    if ( role == QDialogButtonBox::ApplyRole || role == QDialogButtonBox::AcceptRole ) {
+        for ( int row = 0; row < filtersTableWidget->rowCount(); ++row ) {
+            const auto filter = readFilterRow( row );
+            if ( filter.name.isEmpty() && filter.pattern.isEmpty() ) continue;
+            if ( filter.name.trimmed().isEmpty() || filter.pattern.isEmpty() ) {
+                filtersTableWidget->setCurrentCell( row, filter.name.trimmed().isEmpty() ? 0 : 1 );
+                QMessageBox::warning( this, tr( "Incomplete filter" ), tr( "Enter both a name and a pattern." ) );
+                return;
+            }
+            const QRegularExpression expression( filter.pattern );
+            if ( filter.useRegex && !expression.isValid() ) {
+                filtersTableWidget->setCurrentCell( row, 1 );
+                QMessageBox::warning( this, tr( "Invalid regular expression" ), expression.errorString() );
+                return;
+            }
+        }
+    }
 
     switch ( role ) {
     case QDialogButtonBox::RejectRole:

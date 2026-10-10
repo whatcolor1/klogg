@@ -1173,6 +1173,42 @@
         <source>Predefined filters (*.conf)</source>
         <translation type="unfinished">预定义过滤器 (*.conf)</translation>
     </message>
+    <message>
+        <source>Color</source>
+        <translation>颜色</translation>
+    </message>
+    <message>
+        <source>Highlight</source>
+        <translation>高亮范围</translation>
+    </message>
+    <message>
+        <source>Search highlight</source>
+        <translation>沿用搜索高亮</translation>
+    </message>
+    <message>
+        <source>Keywords</source>
+        <translation>关键词</translation>
+    </message>
+    <message>
+        <source>Whole line</source>
+        <translation>整行</translation>
+    </message>
+    <message>
+        <source>Applied to enabled filters in both log views. When whole-line rules overlap, the first filter wins; keyword colors remain visible.</source>
+        <translation>应用于两个日志视图中已启用的过滤器。整行规则重叠时优先使用排在前面的过滤器；关键词仍以各自颜色显示。</translation>
+    </message>
+    <message>
+        <source>Incomplete filter</source>
+        <translation>过滤器信息不完整</translation>
+    </message>
+    <message>
+        <source>Enter both a name and a pattern.</source>
+        <translation>请输入名称和匹配内容。</translation>
+    </message>
+    <message>
+        <source>Invalid regular expression</source>
+        <translation>正则表达式无效</translation>
+    </message>
 </context>
 <context>
     <name>QApplication</name>
@@ -1560,6 +1596,10 @@
         <location filename="../../ui/src/highlighterset.cpp" line="546"/>
         <source>Color label 9</source>
         <translation type="unfinished">颜色标签9</translation>
+    </message>
+    <message>
+        <source>Color label %1</source>
+        <translation>颜色标签 %1</translation>
     </message>
 </context>
 <context>
@@ -2040,6 +2080,18 @@
     <message>
         <source>More</source>
         <translation>更多</translation>
+    </message>
+    <message>
+        <source>Edit filters and colors…</source>
+        <translation>编辑过滤器和颜色…</translation>
+    </message>
+    <message>
+        <source>Additional filters; each filter can be switched on independently.</source>
+        <translation>更多过滤器；各项可以独立开启或关闭。</translation>
+    </message>
+    <message>
+        <source>Click to toggle; right-click to edit colors and highlighting.</source>
+        <translation>单击开启或关闭；右键编辑颜色及高亮范围。</translation>
     </message>
 </context>
 </TS>

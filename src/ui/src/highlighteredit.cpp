@@ -18,6 +18,7 @@
  */
 
 #include "highlighteredit.h"
+#include "readablecolors.h"
 
 #include <QCheckBox>
 #include <QColorDialog>
@@ -176,6 +177,12 @@ void HighlighterEdit::updateIcon( QPushButton* button, const QColor& color )
 
 bool HighlighterEdit::showColorPicker( const QColor& in, QColor& out )
 {
+    const auto& colors = readableColorPalette();
+    for ( size_t i = 0; i < colors.size(); ++i ) {
+        QColorDialog::setStandardColor( static_cast<int>( i ), QColor( colors[i] ) );
+        QColorDialog::setStandardColor( static_cast<int>( i + colors.size() ),
+                                       QColor( colors[i] ).darker( 280 ) );
+    }
     QColorDialog dialog;
 
     // non native dialog ensures they will have a default
