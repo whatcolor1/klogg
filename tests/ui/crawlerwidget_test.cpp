@@ -37,6 +37,8 @@
 #include "ui_predefinedfiltersdialog.h"
 #include "predefinedfiltersdialog.h"
 #include "ui_highlightersdialog.h"
+#include "ui_highlighteredit.h"
+#include "ui_highlightersetedit.h"
 #include "highlightersdialog.h"
 #include <QPushButton>
 #include <QScrollArea>
@@ -619,3 +621,4 @@ TEST_CASE( "Readable labels provide eighteen choices and remain scrollable", "[u
     REQUIRE( dialog.findChild<QScrollArea*>() );
     dialog.grab().save( "ui-readable-color-labels.png" );
 }
+
