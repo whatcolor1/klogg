@@ -69,6 +69,8 @@ class HighlightersMenu;
 
 // Main window of the application, creates menus, toolbar and
 // the CrawlerWidget
+class QTimer;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -221,6 +223,8 @@ class MainWindow : public QMainWindow {
     void updateShortcuts();
 
     WindowSession session_;
+    QTimer* sessionCheckpointTimer_ = nullptr;
+    QByteArray lastSessionCheckpoint_;
     QString loadingFileName;
 
     std::array<QAction*, MAX_RECENT_FILES> recentFileActions;
@@ -322,3 +326,4 @@ class MainWindow : public QMainWindow {
 };
 
 #endif
+

@@ -9,6 +9,8 @@ add_library(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/highlighterset.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/highlightersmenu.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/highlightedmatch.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfiltersbuttonpanel.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/predefinedfiltersbuttonpanel.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfilters.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfilterscombobox.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfiltersdialog.h
@@ -122,3 +124,4 @@ target_link_libraries(
 if(WIN32)
   target_link_libraries(klogg_ui PUBLIC user32)
 endif()
+

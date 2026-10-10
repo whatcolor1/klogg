@@ -98,6 +98,8 @@
 #include "openfilehelper.h"
 #include "optionsdialog.h"
 #include "predefinedfiltersdialog.h"
+#include <QTimer>
+#include <QDataStream>
 #include "progress.h"
 #include "readablesize.h"
 #include "recentfiles.h"
@@ -234,6 +236,10 @@ MainWindow::MainWindow( WindowSession session )
     updateTitleBar( "" );
     loadIcons();
     reTranslateUI();
+    sessionCheckpointTimer_ = new QTimer( this );
+    sessionCheckpointTimer_->setInterval( 1000 );
+    connect( sessionCheckpointTimer_, &QTimer::timeout, this, &MainWindow::writeSettings );
+    sessionCheckpointTimer_->start();
 }
 
 void MainWindow::reloadGeometry()
@@ -1549,6 +1555,7 @@ void MainWindow::closeEvent( QCloseEvent* event )
         this->hide();
     }
     else {
+        sessionCheckpointTimer_->stop();
         const auto saveSettings = session_.close();
         if ( saveSettings ) {
             writeSettings();
@@ -2193,7 +2200,17 @@ void MainWindow::writeSettings()
         auto view = qobject_cast<const CrawlerWidget*>( mainTabWidget_.widget( i ) );
         widget_list.emplace_back( view, 0UL, view->context() );
     }
-    session_.save( widget_list, saveGeometry() );
+    QByteArray checkpoint;
+    QDataStream stream( &checkpoint, QIODevice::WriteOnly );
+    const auto geometry = saveGeometry();
+    stream << geometry << mainTabWidget_.currentIndex();
+    for ( const auto& item : widget_list ) {
+        stream << session_.getFilename( std::get<0>( item ) ) << std::get<2>( item )->toString();
+    }
+    if ( checkpoint != lastSessionCheckpoint_ ) {
+        session_.save( widget_list, geometry, mainTabWidget_.currentIndex() );
+        lastSessionCheckpoint_ = checkpoint;
+    }
 }
 
 // Read settings from permanent storage
@@ -2262,3 +2279,4 @@ void MainWindow::generateDump()
         throw std::logic_error( "test dump" );
     }
 }
+

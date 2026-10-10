@@ -1,275 +1,84 @@
-name: "CI Build"
+name: Windows x64 Qt6
 
 on:
   push:
-    branches: [ master ]
-    paths-ignore:
-      - 'website/**'
-      - BUILD.md
-      - CODE_OF_CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
-      - latest.json
-      - .gitignore
+    branches: [master, 'codex/**']
   pull_request:
-    branches: [ master ]
-    paths-ignore:
-      - 'website/**'
-      - BUILD.md
-      - CODE_OF_CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
-      - latest.json
-      - .gitignore
+    branches: [master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-qt6-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  SaveVersion:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    runs-on: ubuntu-22.04
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      KLOGG_VERSION: 24.11.0.${{ github.run_number }}
+      QT_QPA_PLATFORM: offscreen
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/klogg-version
-
-      - name: Save version 
-        run: echo $KLOGG_VERSION > klogg_version.txt
-
-      - uses: actions/upload-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
         with:
-          name: klogg_version
-          path: 'klogg_version.txt'
+          arch: x64
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.3'
+          arch: win64_msvc2019_64
+          modules: qt5compat
+          cache: true
+      - name: Cache source dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            cpm_cache
+            boost_1_86_0
+          key: windows-x64-qt673-deps-${{ hashFiles('3rdparty/CMakeLists.txt') }}
+      - name: Install Boost headers
+        shell: pwsh
+        run: |
+          if (!(Test-Path boost_1_86_0/boost)) {
+            Invoke-WebRequest https://archives.boost.io/release/1.86.0/source/boost_1_86_0.7z -OutFile boost.7z
+            7z x boost.7z -y -bd
+            if ($LASTEXITCODE -ne 0) { throw 'Boost extraction failed' }
+          }
+          "BOOST_ROOT=$env:GITHUB_WORKSPACE/boost_1_86_0" >> $env:GITHUB_ENV
+      - name: Configure
+        run: >-
+          cmake -S . -B build_root -G Ninja
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCPM_SOURCE_CACHE=${{ github.workspace }}/cpm_cache
+          -DKLOGG_BUILD_TESTS=ON -DKLOGG_GENERIC_CPU=ON
+          -DKLOGG_USE_LTO=OFF -DKLOGG_USE_SENTRY=OFF
+      - name: Build application and tests
+        run: cmake --build build_root --parallel 2
+      - name: Test
+        run: ctest --test-dir build_root --output-on-failure --timeout 180
+      - name: Package portable application
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force package | Out-Null
+          Copy-Item build_root/output/*.exe,build_root/output/*.dll package/
+          Remove-Item package/*test*.exe -ErrorAction SilentlyContinue
+          windeployqt --release --no-opengl-sw --no-translations package/klogg_portable.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Qt deployment failed' }
+          Copy-Item COPYING,NOTICE,README.md,DOCUMENTATION.md package/
+          Compress-Archive package/* klogg-windows-x64-qt6-portable.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: klogg-windows-x64-qt6-portable
+          path: klogg-windows-x64-qt6-portable.zip
           if-no-files-found: error
-
-  Linux:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          #- os: oraclelinux
-          #  os_version: 7
-          #  arch: x64
-          #  check_command: yum install -y --setopt tsflags=test /usr/local/klogg*.rpm
-          #  cpack_gen: RPM
-          #  artifacts_id: oracle7
-          #  package_suffix: rpm
-          #  check_container: oraclelinux:7
-          #  container_root: docker/oracle7
-          #  container: variar/klogg_oracle7
-          #  cmake_opts: -DKLOGG_USE_SENTRY=OFF -DKLOGG_USE_LTO=OFF -DKLOGG_USE_HYPERSCAN=OFF
-
-          - os: oraclelinux
-            os_version: 8
-            arch: x64
-            check_command: yum install -y --setopt tsflags=test /usr/local/klogg*.rpm
-            cpack_gen: RPM
-            artifacts_id: oracle
-            package_suffix: rpm
-            check_container: oraclelinux:8
-            container_root: docker/oracle8
-            container: variar/klogg_oracle8
-            cmake_opts: -DCMAKE_BUILD_WITH_INSTALL_RPATH=on -DKLOGG_USE_VECTORSCAN=OFF -DKLOGG_USE_HYPERSCAN=ON
-
-          - os: ubuntu_focal
-            os_version: 20.04
-            arch: x64
-            check_command: apt-get update && apt install --dry-run /usr/local/klogg*.deb
-            cpack_gen: DEB
-            artifacts_id: focal
-            package_suffix: deb
-            check_container: ubuntu:20.04
-            container_root: docker/ubuntu20.04
-            container: variar/klogg_ubuntu20.04
-            cmake_opts:
-          
-          - os: ubuntu_jammy
-            os_version: 22.04
-            arch: x64
-            check_command: apt-get update && apt install --dry-run /usr/local/klogg*.deb
-            cpack_gen: DEB
-            artifacts_id: jammy
-            package_suffix: deb
-            check_container: ubuntu:22.04
-            container_root: docker/ubuntu22.04
-            container: variar/klogg_ubuntu22.04
-            cmake_opts:
-
-          - os: ubuntu_noble
-            os_version: 24.04
-            arch: x64
-            check_command: apt-get update && apt install --dry-run /usr/local/klogg*.deb
-            cpack_gen: DEB
-            artifacts_id: noble
-            package_suffix: deb
-            check_container: ubuntu:24.04
-            container_root: docker/ubuntu24.04
-            container: variar/klogg_ubuntu24.04
-            cmake_opts:
-
-          - os: ubuntu_appimage
-            os_version: 20.04
-            arch: x64
-            artifacts_id: appimage
-            package_suffix: AppImage
-            container_root: docker/ubuntu20.04
-            container: variar/klogg_ubuntu20.04
-            cmake_opts:
-
-
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-
-      #- uses: satackey/action-docker-layer-caching@v0.0.11
-      #  # Ignore the failure of a step and avoid terminating the job.
-      #  continue-on-error: true
-      
-      - name: Build container 
-        run: |
-          cd ${{ matrix.config.container_root }}
-          docker build -t ${{ matrix.config.container }} .
-
-      - uses: ./.github/actions/klogg-version
-      - uses: ./.github/actions/prepare-workspace-env
-      - uses: ./.github/actions/docker-build
-      - uses: ./.github/actions/docker-run-tests
-      - uses: ./.github/actions/docker-package
-          
-# Final upload of all packages
-      - uses: actions/upload-artifact@v3
+          retention-days: 30
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
         with:
-          name: packages-${{ matrix.config.artifacts_id }}
-          path: '${{ env.KLOGG_BUILD_ROOT }}/packages/*'
-          if-no-files-found: error      
+          name: windows-test-diagnostics
+          path: build_root/Testing/Temporary/
 
-  Mac:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - os: macos
-            os_version: 13
-            qt_version: 6.7.3
-            qt_arch: clang_64
-            qt_modules: qt5compat
-            arch: x64
-            artifacts_id: macos-intel-qt6
-            cmake_opts: -DKLOGG_OSX_DEPLOYMENT_TARGET=13.0
-          - os: macos
-            os_version: 14
-            qt_version: 6.7.3
-            qt_arch: clang_64
-            qt_modules: qt5compat
-            arch: arm64
-            artifacts_id: macos-arm-qt6
-            cmake_opts: -DKLOGG_OSX_DEPLOYMENT_TARGET=14.0
-
-    runs-on: ${{ matrix.config.os }}-${{ matrix.config.os_version }}
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Xcode
-        shell: sh
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app
-
-#Install build deps
-      - name: Set brew env
-        run: |
-          echo "HOMEBREW_NO_ANALYTICS=1" >> $GITHUB_ENV
-          echo "HOMEBREW_NO_AUTO_UPDATE=1" >> $GITHUB_ENV
-          echo "HOMEBREW_NO_INSTALL_CLEANUP=1" >> $GITHUB_ENV
-
-      - name: Brew deps
-        run: |
-          brew install ragel
-
-      - uses: ./.github/actions/agent-setup
-      - uses: ./.github/actions/klogg-version
-      - uses: ./.github/actions/prepare-workspace-env
-      - uses: ./.github/actions/agent-build
-      - uses: ./.github/actions/agent-run-tests
-      - uses: ./.github/actions/agent-package-mac
-        with:
-          p12-file-base64: ${{ secrets.CODESIGN_BASE64 }}
-          p12-password: ${{ secrets.CODESIGN_PASSWORD }}
-          notarization-username: ${{ secrets.NOTARIZATION_USERNAME }}
-          notarization-team: ${{ secrets.NOTARIZATION_TEAM }}
-          notarization-password: ${{ secrets.NOTARIZATION_PASSWORD }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: packages-${{ matrix.config.artifacts_id }}
-          path: '${{ env.KLOGG_BUILD_ROOT }}/packages/*' 
-          if-no-files-found: error
-
-  Windows:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - os: windows
-            os_version: 2022
-            qt_version: 6.7.3
-            qt_modules: qt5compat
-            qt_arch: win64_msvc2019_64
-            arch: x64
-            ssl_arch: -x64
-            cmake_opts:
-            artifacts_id: windows-x64-qt6
-
-          - os: windows
-            os_version: 2022
-            qt_version: 5.15.2
-            qt_arch: win32_msvc2019
-            arch: x86
-            cmake_opts:
-            artifacts_id: windows-x86-qt5
-
-    runs-on: ${{ matrix.config.os }}-${{ matrix.config.os_version }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Cache openssl
-        id: cache-openssl
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}\openssl-1.1
-          key: OpensslCache-1-1-1w
-
-      - name: Download openssl
-        if: ${{ steps.cache-openssl.outputs.cache-hit != 'true' }} 
-        run: |
-          Invoke-WebRequest -Uri "https://www.firedaemon.com/download-firedaemon-openssl-1.1.1-zip" -OutFile openssl.zip
-          7z x openssl.zip 
-
-      - name: Set openssl paths
-        shell: sh
-        run: |
-          echo "SSL_DIR=${{ github.workspace }}\openssl-1.1\${{ matrix.config.arch }}\bin" >> $GITHUB_ENV
-          echo "SSL_ARCH=${{ matrix.config.ssl_arch }}" >> $GITHUB_ENV 
-
-      - uses: ./.github/actions/agent-setup
-      - uses: ./.github/actions/klogg-version
-      - uses: ./.github/actions/prepare-workspace-env
-      
-      - name: Prepare dev cmd
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.config.arch }}
-
-      - uses: ./.github/actions/agent-build
-      - uses: ./.github/actions/agent-run-tests
-      - uses: ./.github/actions/agent-package-win
-        with:
-          s3-key-id: ${{ secrets.WIN_CS_KEY_ID }}
-          s3-secret: ${{ secrets.WIN_CS_SECRET }}
-          s3-bucket: ${{ secrets.WIN_CS_BUCKET }}
-     
-# Final upload of all packages
-      - uses: actions/upload-artifact@v3
-        with:
-          name: packages-${{ matrix.config.artifacts_id }}
-          path: '${{ env.KLOGG_BUILD_ROOT }}/packages/*'
-          if-no-files-found: error

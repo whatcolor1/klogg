@@ -81,6 +81,7 @@ class SessionInfo : public Persistable<SessionInfo, session_settings> {
 
         QString id;
         QByteArray geometry;
+        int currentIndex = -1;
         std::vector<OpenFile> openFiles;
     };
 
@@ -122,6 +123,15 @@ class SessionInfo : public Persistable<SessionInfo, session_settings> {
         return window ? window->geometry : QByteArray{};
     }
 
+    int currentIndex( const QString& id ) const
+    {
+        auto window = findWindow( id );
+        return window ? window->currentIndex : -1;
+    }
+    void setCurrentIndex( const QString& id, int index )
+    {
+        if ( auto window = findWindow( id ) ) window->currentIndex = index;
+    }
     void setGeometry( const QString& windowId, const QByteArray& geometry )
     {
         auto window = findWindow( windowId );
@@ -169,3 +179,4 @@ class SessionInfo : public Persistable<SessionInfo, session_settings> {
 };
 
 #endif
+

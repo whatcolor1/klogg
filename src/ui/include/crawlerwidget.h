@@ -63,6 +63,7 @@
 #include "logmainview.h"
 #include "overview.h"
 #include "predefinedfilterscombobox.h"
+#include "predefinedfiltersbuttonpanel.h"
 #include "signalmux.h"
 #include "viewinterface.h"
 
@@ -377,6 +378,9 @@ class CrawlerWidget : public QSplitter,
     QStandardItemModel* visibilityModel_;
 
     PredefinedFiltersComboBox* predefinedFilters_;
+    PredefinedFiltersButtonPanel* predefinedFiltersPanel_;
+    bool restoredSearchPending_ = false;
+    bool applyingPredefinedFilter_ = false;
 
     QComboBox* searchLineEdit_;
     QMenu* searchLineContextMenu_;
@@ -434,3 +438,4 @@ class CrawlerWidget : public QSplitter,
 };
 
 #endif
+
