@@ -326,4 +326,3 @@ class MainWindow : public QMainWindow {
 };
 
 #endif
-

@@ -52,7 +52,14 @@ void PredefinedFiltersButtonPanel::setFilters( const QList<PredefinedFilter>& fi
 
 void PredefinedFiltersButtonPanel::setActiveFilters( const QList<PredefinedFilter>& filters )
 {
-    active_ = filters;
+    const auto requested = filters;
+    active_.clear();
+    for ( const auto& f : requested ) {
+        if ( std::any_of( filters_.cbegin(), filters_.cend(),
+             [&f]( const auto& candidate ) { return sameFilter( f, candidate ); } ) ) {
+            active_.append( f );
+        }
+    }
     for ( int i = 0; i < buttons_.size(); ++i ) {
         buttons_[i]->setChecked( std::any_of( active_.cbegin(), active_.cend(),
             [this, i]( const auto& f ) { return sameFilter( f, filters_[i] ); } ) );

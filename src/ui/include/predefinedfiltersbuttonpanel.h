@@ -14,6 +14,7 @@ class PredefinedFiltersButtonPanel : public QWidget {
     explicit PredefinedFiltersButtonPanel( QWidget* parent = nullptr );
     void setFilters( const QList<PredefinedFilter>& filters );
     void setActiveFilters( const QList<PredefinedFilter>& filters );
+    QList<PredefinedFilter> activeFilters() const { return active_; }
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
 

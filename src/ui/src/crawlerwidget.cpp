@@ -90,8 +90,10 @@ public:
     // Construct from the value passsed
     CrawlerWidgetContext( QList<int> sizes, bool ignoreCase, bool autoRefresh, bool followFile,
                           bool useRegexp, bool inverseRegexp, bool useBooleanCombination,
-                          QList<LineNumber> markedLines, const QString& searchText )
+                          QList<LineNumber> markedLines, const QString& searchText,
+                          const QList<PredefinedFilter>& activeFilters )
         : searchText_( searchText )
+        , activeFilters_( activeFilters )
         , sizes_( sizes )
         , ignoreCase_( ignoreCase )
         , autoRefresh_( autoRefresh )
@@ -109,6 +111,7 @@ public:
 
     // Access the Qt sizes array for the QSplitter
     QString searchText() const { return searchText_; }
+    QList<PredefinedFilter> activeFilters() const { return activeFilters_; }
 
     QList<int> sizes() const
     {
@@ -151,6 +154,7 @@ private:
 
 private:
     QString searchText_;
+    QList<PredefinedFilter> activeFilters_;
     QList<int> sizes_;
 
     bool ignoreCase_ = false;
@@ -359,6 +363,7 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
     logMainView_->followSet( context.followFile() && config.anyFileWatchEnabled() );
 
     searchLineEdit_->setEditText( context.searchText() );
+    predefinedFiltersPanel_->setActiveFilters( context.activeFilters() );
     updatePredefinedFiltersWidget();
     restoredSearchPending_ = !context.searchText().isEmpty();
 
@@ -372,7 +377,8 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
     auto context = std::make_shared<const CrawlerWidgetContext>(
         sizes(), ( !matchCaseButton_->isChecked() ), searchRefreshButton_->isChecked(),
         logMainView_->isFollowEnabled(), useRegexpButton_->isChecked(), inverseButton_->isChecked(),
-        booleanButton_->isChecked(), logFilteredData_->getMarks(), searchLineEdit_->currentText() );
+        booleanButton_->isChecked(), logFilteredData_->getMarks(), searchLineEdit_->currentText(),
+        predefinedFiltersPanel_->activeFilters() );
 
     return static_cast<std::shared_ptr<const ViewContextInterface>>( context );
 }
@@ -426,6 +432,11 @@ void CrawlerWidget::updatePredefinedFiltersWidget()
                                              booleanButton_->isChecked() );
     QList<PredefinedFilter> active;
     const QString text = searchLineEdit_->currentText();
+    QString activePattern;
+    for ( const auto& f : predefinedFiltersPanel_->activeFilters() ) {
+        combinePatterns( activePattern, escapeSearchPattern( f.pattern, f.useRegex ) );
+    }
+    if ( activePattern == text ) return;
     const QStringList parts = booleanButton_->isChecked()
         ? text.split( QStringLiteral( " or " ) ) : text.split( QLatin1Char( '|' ) );
     for ( const auto& filter : PredefinedFiltersCollection::get().getFilters() ) {
@@ -865,6 +876,8 @@ void CrawlerWidget::changeFilteredViewVisibility( int index )
 
 void CrawlerWidget::setSearchPatternFromPredefinedFilters( const QList<PredefinedFilter>& filters )
 {
+    // Canonical regex mode supports mixed literal/regex presets and OR combinations.
+    if ( !filters.isEmpty() ) useRegexpButton_->setChecked( true );
     QString searchPattern;
     for ( const auto& filter : filters ) {
         combinePatterns( searchPattern, escapeSearchPattern( filter.pattern, filter.useRegex ) );
@@ -1914,6 +1927,11 @@ void CrawlerWidgetContext::loadFromJson( const QString& json )
     }
 
     searchText_ = properties.value( "ST" ).toString();
+    for ( const auto& value : properties.value( "PF" ).toList() ) {
+        const auto f = value.toMap();
+        activeFilters_.append( { f.value( "name" ).toString(), f.value( "pattern" ).toString(),
+                                 f.value( "regex" ).toBool() } );
+    }
     ignoreCase_ = properties.value( "IC" ).toBool();
     autoRefresh_ = properties.value( "AR" ).toBool();
     followFile_ = properties.value( "FF" ).toBool();
@@ -1959,6 +1977,12 @@ QString CrawlerWidgetContext::toString() const
     QVariantMap properies;
 
     properies[ "ST" ] = searchText_;
+    QVariantList activeFilters;
+    for ( const auto& f : activeFilters_ ) {
+        activeFilters.append( QVariantMap{ { "name", f.name }, { "pattern", f.pattern },
+                                           { "regex", f.useRegex } } );
+    }
+    properies[ "PF" ] = activeFilters;
     properies[ "S" ] = toVariantList( sizes_ );
     properies[ "IC" ] = ignoreCase_;
     properies[ "AR" ] = autoRefresh_;
@@ -1970,4 +1994,3 @@ QString CrawlerWidgetContext::toString() const
 
     return QJsonDocument::fromVariant( properies ).toJson( QJsonDocument::Compact );
 }
-

@@ -124,4 +124,3 @@ target_link_libraries(
 if(WIN32)
   target_link_libraries(klogg_ui PUBLIC user32)
 endif()
-

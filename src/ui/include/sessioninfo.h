@@ -179,4 +179,3 @@ class SessionInfo : public Persistable<SessionInfo, session_settings> {
 };
 
 #endif
-

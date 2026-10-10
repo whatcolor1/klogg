@@ -23,6 +23,14 @@
 #include <QTemporaryFile>
 #include <QTest>
 #include <QTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QSet>
+#include <QSettings>
+#include <QTemporaryDir>
+#include "predefinedfiltersbuttonpanel.h"
+#include "sessioninfo.h"
 #include <qglobal.h>
 #include <qnamespace.h>
 #include <qtestmouse.h>
@@ -265,4 +273,97 @@ SCENARIO( "Crawler widget search", "[ui]" )
             }
         }
     }
+}
+
+TEST_CASE( "Preset panel bounds overflow and keeps menu selection visible", "[ui][presets]" )
+{
+    PredefinedFiltersButtonPanel panel;
+    QList<PredefinedFilter> filters;
+    for ( int i = 0; i < 20; ++i ) {
+        filters.append( { QString( "Filter %1" ).arg( i ), QString::number( i ), false } );
+    }
+    panel.setFilters( filters );
+    panel.resize( 260, panel.sizeHint().height() );
+    panel.show();
+    QTest::qWait( 20 );
+    auto* more = panel.findChild<QToolButton*>( "moreFiltersButton" );
+    REQUIRE( more );
+    REQUIRE_FALSE( more->isHidden() );
+    REQUIRE_FALSE( more->menu()->actions().isEmpty() );
+    QSet<int> rows;
+    for ( auto* button : panel.findChildren<QToolButton*>() ) {
+        if ( button->isHidden() ) continue;
+        rows.insert( button->y() );
+        REQUIRE( panel.rect().contains( button->geometry() ) );
+    }
+    REQUIRE( rows.size() <= 2 );
+    QSignalSpy activated( &panel, &PredefinedFiltersButtonPanel::filterActivated );
+    auto* overflowAction = more->menu()->actions().last();
+    overflowAction->trigger();
+    REQUIRE( activated.count() == 1 );
+    REQUIRE( overflowAction->isChecked() );
+    REQUIRE( more->isChecked() );
+    panel.resize( 10000, panel.height() );
+    QTest::qWait( 20 );
+    REQUIRE( more->isHidden() );
+    panel.resize( 1, panel.height() );
+    QTest::qWait( 20 );
+    REQUIRE_FALSE( more->isHidden() );
+    REQUIRE( more->menu()->actions().size() == filters.size() );
+}
+
+TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][presets][session]" )
+{
+    QTemporaryFile file{ "preset_test_XXXXXX" };
+    REQUIRE( generateDataFiles( file ) );
+    Session session;
+    CrawlerWidgetVisitor visitor;
+    visitor.crawler.reset( static_cast<CrawlerWidget*>(
+        session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
+    REQUIRE( waitUiState( [&] { return visitor.isLoadingFinished(); } ) );
+    auto* panel = visitor.crawler->findChild<PredefinedFiltersButtonPanel*>();
+    REQUIRE( panel );
+    const QList<PredefinedFilter> filters = {
+        { "Line ten", "000010", false }, { "Line twenty", "000020", false } };
+    panel->setFilters( filters );
+    const auto buttons = panel->findChildren<QToolButton*>();
+    for ( const auto& filter : filters ) {
+        auto button = std::find_if( buttons.cbegin(), buttons.cend(),
+            [&filter]( const auto* b ) { return b->text() == filter.name; } );
+        REQUIRE( button != buttons.cend() );
+        (*button)->click();
+        REQUIRE( waitUiState( [&] {
+            visitor.selectAllInFilteredView();
+            return visitor.filteredViewSelectedText().contains( filter.pattern );
+        } ) );
+        REQUIRE( visitor.getLogFilteredNbLines().get() == 1 );
+        REQUIRE( (*button)->isChecked() );
+        visitor.render();
+    }
+    const auto context = visitor.crawler->context()->toString();
+    const auto json = QJsonDocument::fromJson( context.toUtf8() ).object();
+    REQUIRE( json.value( "ST" ).toString() == "000020" );
+    REQUIRE_FALSE( json.value( "PF" ).toArray().isEmpty() );
+    visitor.crawler->setViewContext( context );
+    REQUIRE( panel->activeFilters().size() == 1 );
+    REQUIRE( panel->activeFilters().first().name == "Line twenty" );
+}
+
+TEST_CASE( "Session checkpoints round trip current tab and Unicode context", "[ui][session]" )
+{
+    QTemporaryDir directory;
+    REQUIRE( directory.isValid() );
+    QSettings settings( directory.filePath( "session.ini" ), QSettings::IniFormat );
+    SessionInfo session;
+    session.add( "window" );
+    const auto unicode = QString::fromUtf8( "{\"ST\":\"相机错误\"}" );
+    session.setOpenFiles( "window", { { "a.log", 0, unicode }, { "b.log", 0, "{}" } } );
+    session.setCurrentIndex( "window", 0 );
+    session.saveToStorage( settings );
+    QSettings disk( directory.filePath( "session.ini" ), QSettings::IniFormat );
+    SessionInfo restored;
+    restored.retrieveFromStorage( disk );
+    REQUIRE( restored.currentIndex( "window" ) == 0 );
+    REQUIRE( restored.openFiles( "window" ).size() == 2 );
+    REQUIRE( restored.openFiles( "window" ).front().viewContext == unicode );
 }

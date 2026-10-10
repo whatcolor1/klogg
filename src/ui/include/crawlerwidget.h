@@ -438,4 +438,3 @@ class CrawlerWidget : public QSplitter,
 };
 
 #endif
-

@@ -109,4 +109,3 @@ void SessionInfo::saveToStorage( QSettings& settings ) const
     settings.endGroup(); // Win
     settings.sync(); // Flush checkpoints even when the process later exits abnormally.
 }
-

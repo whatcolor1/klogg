@@ -2279,4 +2279,3 @@ void MainWindow::generateDump()
         throw std::logic_error( "test dump" );
     }
 }
-

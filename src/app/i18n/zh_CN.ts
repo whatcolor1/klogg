@@ -2035,4 +2035,11 @@
         <translation>Klogg 日志阅读器</translation>
     </message>
 </context>
+<context>
+    <name>PredefinedFiltersButtonPanel</name>
+    <message>
+        <source>More</source>
+        <translation>更多</translation>
+    </message>
+</context>
 </TS>
