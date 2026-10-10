@@ -702,8 +702,8 @@ TEST_CASE( "Interface typography and compact colored controls", "[ui][appearance
         const QColor background( color );
         REQUIRE( background.isValid() );
         const auto fore = readableForeground( background );
-        REQUIRE( fore == QColor( Qt::white ) || fore == QColor( Qt::black )
-                 || fore == QColor( "#18212f" ) );
+        REQUIRE( ( fore == QColor( Qt::white ) || fore == QColor( Qt::black )
+                   || fore == QColor( "#18212f" ) ) );
     }
     if ( QGuiApplication::platformName() == "windows" ) {
         REQUIRE( QFontMetrics( QApplication::font() ).inFont( QChar( 'A' ) ) );
