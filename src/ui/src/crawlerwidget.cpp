@@ -437,7 +437,10 @@ void CrawlerWidget::updatePredefinedFiltersWidget()
     for ( const auto& f : predefinedFiltersPanel_->activeFilters() ) {
         combinePatterns( activePattern, escapeSearchPattern( f.pattern, f.useRegex ) );
     }
-    if ( activePattern == text ) return;
+    if ( activePattern == text ) {
+        predefinedFilters_->setSelectedFilters( predefinedFiltersPanel_->activeFilters() );
+        return;
+    }
     const QStringList parts = booleanButton_->isChecked()
         ? text.split( QStringLiteral( " or " ) ) : text.split( QLatin1Char( '|' ) );
     for ( const auto& filter : PredefinedFiltersCollection::get().getFilters() ) {
@@ -446,6 +449,7 @@ void CrawlerWidget::updatePredefinedFiltersWidget()
         if ( text == pattern || parts.contains( pattern ) ) active.append( filter );
     }
     predefinedFiltersPanel_->setActiveFilters( active );
+    predefinedFilters_->setSelectedFilters( active );
 }
 
 void CrawlerWidget::stopSearch()
@@ -887,6 +891,7 @@ void CrawlerWidget::setSearchPatternFromPredefinedFilters( const QList<Predefine
     setSearchPattern( searchPattern );
     applyingPredefinedFilter_ = false;
     predefinedFiltersPanel_->setActiveFilters( filters );
+    predefinedFilters_->setSelectedFilters( filters );
     startNewSearch();
 }
 
