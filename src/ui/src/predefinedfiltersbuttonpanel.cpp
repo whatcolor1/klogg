@@ -44,6 +44,7 @@ void PredefinedFiltersButtonPanel::setFilters( const QList<PredefinedFilter>& fi
     filters_ = filters;
     for ( const auto& filter : filters_ ) {
         auto* button = new QToolButton( this );
+        button->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
         button->setText( filter.name );
         const auto color = filter.color.isValid() ? filter.color : automaticFilterColor( filter.name );
         const auto fore = readableForeground( color );
