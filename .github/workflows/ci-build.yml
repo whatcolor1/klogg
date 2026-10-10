@@ -73,11 +73,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force package | Out-Null
-          Copy-Item build_root/output/*.exe,build_root/output/*.dll package/
-          Remove-Item package/*test*.exe -ErrorAction SilentlyContinue
+          Copy-Item build_root/output/klogg.exe,build_root/output/klogg_portable.exe,build_root/output/klogg_grep.exe,build_root/output/*.dll package/
           windeployqt --release --no-opengl-sw --no-translations package/klogg_portable.exe
           if ($LASTEXITCODE -ne 0) { throw 'Qt deployment failed' }
           Copy-Item COPYING,NOTICE,README.md,DOCUMENTATION.md package/
+          # Check deployment without the Qt installation or compiler directories on PATH.
+          $env:PATH = "$env:SystemRoot/System32;$env:SystemRoot"
+          $portable = Start-Process -FilePath ./package/klogg_portable.exe -ArgumentList '-platform','offscreen','-v' -WindowStyle Hidden -Wait -PassThru
+          if ($portable.ExitCode -ne 0) { throw "Packaged application exited with $($portable.ExitCode)" }
           Compress-Archive package/* klogg-windows-x64-qt6-portable.zip
       - uses: actions/upload-artifact@v4
         with:
@@ -90,4 +93,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-test-diagnostics
-          path: build_root/Testing/Temporary/
+          path: |
+            build_root/Testing/Temporary/
+            build_root/tests/ui/highlight-*.png

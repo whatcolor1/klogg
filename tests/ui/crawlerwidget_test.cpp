@@ -144,6 +144,12 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
             && containsColor( crawler->filteredView_->viewport() );
     }
 
+    void saveHighlightDiagnostics()
+    {
+        crawler->logMainView_->viewport()->grab().save( "highlight-main.png" );
+        crawler->filteredView_->viewport()->grab().save( "highlight-filtered.png" );
+    }
+
     void setSearchPattern( const QString& pattern )
     {
         QTest::keyClicks( crawler->searchLineEdit_, pattern );
@@ -390,7 +396,15 @@ TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][pre
         REQUIRE( visitor.getLogFilteredNbLines().get() == enabled );
         REQUIRE( (*button)->isChecked() );
         visitor.render();
-        REQUIRE( visitor.bothViewsHaveHighlight( highlightColor ) );
+        // Data arrives on a worker thread; the queued UI refresh must finish before sampling pixels.
+        const bool highlighted = waitUiState( [&] {
+            return visitor.bothViewsHaveHighlight( highlightColor );
+        } );
+        if ( !highlighted ) visitor.saveHighlightDiagnostics();
+        INFO( "highlight enabled=" << config.mainSearchHighlight()
+              << "; color=" << config.mainSearchBackColor().name().toStdString()
+              << "; main top line=" << visitor.crawler->getTopLine().get() );
+        REQUIRE( highlighted );
     }
     const auto context = visitor.crawler->context()->toString();
     const auto json = QJsonDocument::fromJson( context.toUtf8() ).object();

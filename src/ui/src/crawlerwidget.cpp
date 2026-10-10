@@ -222,6 +222,7 @@ void CrawlerWidget::reloadPredefinedFilters() const
 {
     predefinedFilters_->populatePredefinedFilters();
     predefinedFiltersPanel_->setFilters( PredefinedFiltersCollection::getSynced().getFilters() );
+    predefinedFilters_->setSelectedFilters( predefinedFiltersPanel_->activeFilters() );
 }
 
 QString CrawlerWidget::encodingText() const
