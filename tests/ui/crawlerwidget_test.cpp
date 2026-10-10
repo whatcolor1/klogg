@@ -602,6 +602,8 @@ TEST_CASE( "Readable labels provide eighteen choices and remain scrollable", "[u
 {
     const auto labels = HighlighterSetCollection::getSynced().quickHighlighters();
     REQUIRE( labels.size() == 18 );
+    REQUIRE( readableForeground( QColor( Qt::black ) ) == QColor( Qt::white ) );
+    REQUIRE( readableForeground( QColor( Qt::red ) ) == QColor( Qt::black ) );
     for ( const auto& background : readableColorPalette() ) {
         REQUIRE( readableForeground( QColor( background ) ) == QColor( "#18212f" ) );
     }

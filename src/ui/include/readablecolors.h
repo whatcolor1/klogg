@@ -23,7 +23,11 @@ inline QColor readableForeground( const QColor& background )
     };
     const double luminance = 0.2126 * linear( background.redF() )
         + 0.7152 * linear( background.greenF() ) + 0.0722 * linear( background.blueF() );
-    return luminance > 0.179 ? QColor( "#18212f" ) : QColor( Qt::white );
+    const QColor dark( "#18212f" );
+    const double darkLuminance = 0.2126 * linear( dark.redF() )
+        + 0.7152 * linear( dark.greenF() ) + 0.0722 * linear( dark.blueF() );
+    if ( ( luminance + 0.05 ) / ( darkLuminance + 0.05 ) >= 4.5 ) return dark;
+    return 1.05 / ( luminance + 0.05 ) >= 4.5 ? QColor( Qt::white ) : QColor( Qt::black );
 }
 
 inline QColor automaticFilterColor( const QString& name )
