@@ -40,9 +40,13 @@ void PredefinedFiltersButtonPanel::setFilters( const QList<PredefinedFilter>& fi
         button->setText( filter.name );
         button->setToolTip( filter.pattern );
         button->setCheckable( true );
-        connect( button, &QToolButton::clicked, this, [this, filter] {
-            setActiveFilters( { filter } );
-            Q_EMIT filterActivated( filter );
+        connect( button, &QToolButton::clicked, this, [this] {
+            QList<PredefinedFilter> selected;
+            for ( int i = 0; i < buttons_.size(); ++i ) {
+                if ( buttons_[i]->isChecked() ) selected.append( filters_[i] );
+            }
+            setActiveFilters( selected );
+            Q_EMIT filtersChanged( selected );
         } );
         buttons_.append( button );
     }

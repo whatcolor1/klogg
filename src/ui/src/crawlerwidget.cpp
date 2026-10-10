@@ -1229,10 +1229,8 @@ void CrawlerWidget::setup()
     connect( searchLineEdit_, QOverload<int>::of( &QComboBox::currentIndexChanged ), this,
              [ this ]( auto ) { updatePredefinedFiltersWidget(); } );
 
-    connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::filterActivated, this,
-             [this]( const PredefinedFilter& filter ) {
-                 setSearchPatternFromPredefinedFilters( { filter } );
-             } );
+    connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::filtersChanged, this,
+             &CrawlerWidget::setSearchPatternFromPredefinedFilters );
 
     connect( predefinedFilters_, &PredefinedFiltersComboBox::filterChanged, this,
              &CrawlerWidget::setSearchPatternFromPredefinedFilters );

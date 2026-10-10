@@ -121,6 +121,14 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
             ? crawler->logFilteredData_->getLineString( 0_lnum ) : QString{};
     }
 
+    bool filteredContains( const QString& pattern )
+    {
+        const auto lines = crawler->logFilteredData_->getLines(
+            0_lnum, crawler->logFilteredData_->getNbLine() );
+        return std::any_of( lines.cbegin(), lines.cend(),
+            [&pattern]( const auto& line ) { return line.contains( pattern ); } );
+    }
+
     bool bothViewsHaveHighlight( const QColor& color )
     {
         const auto containsColor = [&color]( QWidget* widget ) {
@@ -319,7 +327,7 @@ TEST_CASE( "Preset panel bounds overflow and keeps menu selection visible", "[ui
         REQUIRE( panel.rect().contains( button->geometry() ) );
     }
     REQUIRE( rows.size() <= 2 );
-    QSignalSpy activated( &panel, &PredefinedFiltersButtonPanel::filterActivated );
+    QSignalSpy activated( &panel, &PredefinedFiltersButtonPanel::filtersChanged );
     auto* overflowAction = more->menu()->actions().last();
     overflowAction->trigger();
     REQUIRE( activated.count() == 1 );
@@ -368,33 +376,52 @@ TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][pre
         { "Line ten", "000010", false }, { "Line twenty", "000020", false } };
     panel->setFilters( filters );
     const auto buttons = panel->findChildren<QToolButton*>();
+    int enabled = 0;
     for ( const auto& filter : filters ) {
         auto button = std::find_if( buttons.cbegin(), buttons.cend(),
             [&filter]( const auto* b ) { return b->text() == filter.name; } );
         REQUIRE( button != buttons.cend() );
         (*button)->click();
+        ++enabled;
         REQUIRE( waitUiState( [&] {
-            return visitor.firstFilteredLine().contains( filter.pattern );
+            return visitor.getLogFilteredNbLines().get() == enabled
+                && visitor.filteredContains( filter.pattern );
         } ) );
-        REQUIRE( visitor.getLogFilteredNbLines().get() == 1 );
+        REQUIRE( visitor.getLogFilteredNbLines().get() == enabled );
         REQUIRE( (*button)->isChecked() );
         visitor.render();
         REQUIRE( visitor.bothViewsHaveHighlight( highlightColor ) );
     }
     const auto context = visitor.crawler->context()->toString();
     const auto json = QJsonDocument::fromJson( context.toUtf8() ).object();
-    REQUIRE( json.value( "ST" ).toString() == "000020" );
-    REQUIRE_FALSE( json.value( "PF" ).toArray().isEmpty() );
+    REQUIRE( json.value( "ST" ).toString() == "000010|000020" );
+    REQUIRE( json.value( "PF" ).toArray().size() == 2 );
     visitor.crawler->setViewContext( context );
-    REQUIRE( panel->activeFilters().size() == 1 );
-    REQUIRE( panel->activeFilters().first().name == "Line twenty" );
+    REQUIRE( panel->activeFilters().size() == 2 );
     CrawlerWidgetVisitor recovered;
     recovered.crawler.reset( static_cast<CrawlerWidget*>(
         session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
     recovered.crawler->findChild<PredefinedFiltersButtonPanel*>()->setFilters( filters );
     recovered.crawler->setViewContext( context );
     REQUIRE( waitUiState( [&] { return recovered.isLoadingFinished(); } ) );
-    REQUIRE( waitUiState( [&] { return recovered.firstFilteredLine().contains( "000020" ); } ) );
+    REQUIRE( waitUiState( [&] {
+        return recovered.getLogFilteredNbLines().get() == 2
+            && recovered.filteredContains( "000020" ) && recovered.filteredContains( "000010" );
+    } ) );
+    auto* recoveredPanel = recovered.crawler->findChild<PredefinedFiltersButtonPanel*>();
+    REQUIRE( recoveredPanel->activeFilters().size() == 2 );
+    for ( auto* button : panel->findChildren<QToolButton*>() ) {
+        if ( button->text() == "Line ten" ) button->click();
+    }
+    REQUIRE( waitUiState( [&] {
+        return visitor.getLogFilteredNbLines().get() == 1 && visitor.filteredContains( "000020" );
+    } ) );
+    REQUIRE( panel->activeFilters().size() == 1 );
+    for ( auto* button : panel->findChildren<QToolButton*>() ) {
+        if ( button->text() == "Line twenty" ) button->click();
+    }
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines().get() == 0; } ) );
+    REQUIRE( panel->activeFilters().isEmpty() );
     auto unicodeContext = json;
     const auto unicode = QString::fromUtf8( "相机错误" );
     unicodeContext.insert( "ST", unicode );

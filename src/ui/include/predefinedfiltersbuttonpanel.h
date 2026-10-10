@@ -19,7 +19,7 @@ class PredefinedFiltersButtonPanel : public QWidget {
     QSize sizeHint() const override;
 
   Q_SIGNALS:
-    void filterActivated( const PredefinedFilter& filter );
+    void filtersChanged( const QList<PredefinedFilter>& filters );
 
   protected:
     void resizeEvent( QResizeEvent* event ) override;
