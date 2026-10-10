@@ -189,6 +189,7 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
     void verifyInterfaceFontIsolation()
     {
         const auto uiFont = QApplication::font();
+        const auto originalLogFont = crawler->logMainView_->font();
         QFont largeLogFont( "Courier New", 28, QFont::Bold );
         crawler->logMainView_->updateFont( largeLogFont );
         REQUIRE( crawler->logMainView_->font().pointSize() == 28 );
@@ -200,6 +201,7 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
             REQUIRE( menu->font().pointSizeF() == uiFont.pointSizeF() );
             REQUIRE_FALSE( menu->font().bold() );
         }
+        crawler->logMainView_->updateFont( originalLogFont );
     }
 
     void setSearchPattern( const QString& pattern )
