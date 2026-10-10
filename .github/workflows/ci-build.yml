@@ -33,6 +33,7 @@ jobs:
           modules: qt5compat
           cache: true
       - name: Cache source dependencies
+        id: source-cache
         uses: actions/cache@v4
         with:
           path: |
@@ -49,12 +50,21 @@ jobs:
           }
           "BOOST_ROOT=$env:GITHUB_WORKSPACE/boost_1_86_0" >> $env:GITHUB_ENV
       - name: Configure
+        id: configure
         run: >-
           cmake -S . -B build_root -G Ninja
           -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
           -DCPM_SOURCE_CACHE=${{ github.workspace }}/cpm_cache
           -DKLOGG_BUILD_TESTS=ON -DKLOGG_GENERIC_CPU=ON
           -DKLOGG_USE_LTO=OFF -DKLOGG_USE_SENTRY=OFF
+      - name: Save downloaded dependencies before compilation
+        if: steps.source-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            cpm_cache
+            boost_1_86_0
+          key: windows-x64-qt673-deps-${{ hashFiles('3rdparty/CMakeLists.txt') }}
       - name: Build application and tests
         run: cmake --build build_root --parallel 2
       - name: Test

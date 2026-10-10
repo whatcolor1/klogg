@@ -112,6 +112,7 @@ void PredefinedFiltersButtonPanel::arrangeButtons()
     QVector<QRect> positions;
     const auto pack = [&]( bool reserveMore ) {
         positions.clear();
+        if ( available <= 0 ) return;
         int x = 0, row = 0;
         for ( auto* b : buttons_ ) {
             const int w = std::min( available, b->sizeHint().width() );
