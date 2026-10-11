@@ -54,6 +54,8 @@ jobs:
         run: >-
           cmake -S . -B build_root -G Ninja
           -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCMAKE_CXX_FLAGS_RELEASE="/O2 /Ob2 /DNDEBUG /Zi"
+          -DCMAKE_EXE_LINKER_FLAGS_RELEASE="/DEBUG /INCREMENTAL:NO /OPT:REF /OPT:ICF"
           -DCPM_SOURCE_CACHE=${{ github.workspace }}/cpm_cache
           -DKLOGG_BUILD_TESTS=ON -DKLOGG_GENERIC_CPU=ON
           -DKLOGG_USE_LTO=OFF -DKLOGG_USE_SENTRY=OFF
@@ -68,7 +70,12 @@ jobs:
       - name: Build application and tests
         run: cmake --build build_root --parallel 2
       - name: Test
+        id: test
         run: ctest --test-dir build_root --output-on-failure --timeout 180
+      - name: Diagnose asynchronous search on failure
+        if: failure() && steps.test.outcome == 'failure'
+        timeout-minutes: 2
+        run: ./build_root/output/klogg_itests.exe "*search for regex*" -platform offscreen
       - name: Native Windows typography preview
         working-directory: build_root/tests/ui
         run: ../../output/klogg_itests.exe "[appearance]" -platform windows
@@ -124,6 +131,16 @@ jobs:
         with:
           name: windows-ui-previews
           path: build_root/tests/ui/ui-*.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Windows crash symbols
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-crash-symbols
+          path: |
+            build_root/output/*.pdb
+            build_root/output/klogg_itests.exe
           if-no-files-found: ignore
           retention-days: 7
 

@@ -808,7 +808,11 @@ TEST_CASE( "Filter palettes persist, preserve custom colors until applied, and r
             const auto background = filterSchemeColor( name, index );
             const auto foreground = readableForeground( background );
             const auto luminance = []( const QColor& color ) {
-                const auto linear = []( double channel ) { return channel <= 0.04045 ? channel / 12.92 : std::pow( ( channel + 0.055 ) / 1.055, 2.4 ); };
+                const auto linear = []( auto component ) {
+                    const double channel = static_cast<double>( component );
+                    return channel <= 0.04045 ? channel / 12.92
+                        : std::pow( ( channel + 0.055 ) / 1.055, 2.4 );
+                };
                 return 0.2126 * linear( color.redF() ) + 0.7152 * linear( color.greenF() ) + 0.0722 * linear( color.blueF() );
             };
             const auto light = luminance( background ), dark = luminance( foreground );

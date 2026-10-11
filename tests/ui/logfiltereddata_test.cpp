@@ -233,6 +233,7 @@ SCENARIO( "search for regex", "[logdata]" )
         WHEN( "Searched for regex" )
         {
             const auto threadPoolSize = GENERATE( 0, 1, 2 );
+            CAPTURE( threadPoolSize );
 
             auto& config = Configuration::getSynced();
 

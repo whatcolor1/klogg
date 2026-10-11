@@ -29,7 +29,8 @@ inline const std::array<const char*, 18>& vividColorPalette()
 
 inline QColor readableForeground( const QColor& background )
 {
-    const auto linear = []( double value ) {
+    const auto linear = []( auto channel ) {
+        const double value = static_cast<double>( channel );
         return value <= 0.04045 ? value / 12.92 : std::pow( ( value + 0.055 ) / 1.055, 2.4 );
     };
     const double luminance = 0.2126 * linear( background.redF() )
