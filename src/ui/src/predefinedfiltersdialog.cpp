@@ -54,7 +54,6 @@
 #include <qglobal.h>
 #include <qwidget.h>
 
-#include "dispatch_to.h"
 #include "iconloader.h"
 #include "log.h"
 #include "predefinedfilters.h"
@@ -142,7 +141,8 @@ PredefinedFiltersDialog::PredefinedFiltersDialog( QWidget* parent )
     connect( filtersTableWidget, &QTableWidget::currentCellChanged, this,
              &PredefinedFiltersDialog::onCurrentCellChanged );
 
-    dispatchToMainThread( [ this ] {
+    // Cancel deferred icon initialization when the dialog has already closed.
+    QTimer::singleShot( 0, this, [ this ] {
         IconLoader iconLoader( this );
 
         addFilterButton->setIcon( iconLoader.load( "icons8-plus-16" ) );

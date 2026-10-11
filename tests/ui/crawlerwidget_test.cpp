@@ -770,6 +770,9 @@ TEST_CASE( "Filter palettes persist, preserve custom colors until applied, and r
         REQUIRE( PredefinedFiltersCollection::getSynced().getFilters()[0].color == original[0].color );
         REQUIRE( PredefinedFiltersCollection::getSynced().colorScheme() == "latte" );
     }
+    // Process pending work after destruction: deferred icon setup must not use
+    // a dialog that was created and closed before the event loop ran.
+    QTest::qWait( 50 );
     PredefinedFiltersDialog dialog;
     auto* scheme = dialog.findChild<QComboBox*>( "filterColorScheme" );
     REQUIRE( scheme );
