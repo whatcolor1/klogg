@@ -18,6 +18,7 @@
  */
 
 #include <catch2/catch.hpp>
+#include <algorithm>
 
 #include <QSignalSpy>
 #include <QTemporaryFile>
@@ -738,6 +739,79 @@ TEST_CASE( "Colored keyword and whole-line presets compose and M marks stand out
     visitor.crawler->grab().save( "ui-prominent-m-mark.png" );
     visitor.toggleMark();
     REQUIRE( waitUiState( [&] { return visitor.markCount() == 0_lcount; } ) );
+}
+
+TEST_CASE( "Filter palettes persist, preserve custom colors until applied, and retain highlight modes", "[ui][presets][palettes]" )
+{
+    using Mode = PredefinedFilter::HighlightMode;
+    auto& presets = PredefinedFiltersCollection::getSynced();
+    struct RestorePalette {
+        QList<PredefinedFilter> filters;
+        QString scheme;
+        ~RestorePalette() {
+            auto& collection = PredefinedFiltersCollection::getSynced();
+            collection.setColorScheme( scheme );
+            collection.saveToStorage( filters );
+        }
+    } restore{ presets.getFilters(), presets.colorScheme() };
+    const QList<PredefinedFilter> original = {
+        { "Error", "error", false, QColor( "#123456" ), Mode::WholeLine },
+        { "Warning", "warning", false, QColor( "#654321" ), Mode::Search }
+    };
+    presets.setColorScheme( "latte" );
+    presets.saveToStorage( original );
+    {
+        PredefinedFiltersDialog cancelled;
+        auto* scheme = cancelled.findChild<QComboBox*>( "filterColorScheme" );
+        REQUIRE( scheme );
+        scheme->setCurrentIndex( scheme->findData( "nord" ) );
+        cancelled.findChild<QPushButton*>( "applyFilterPalette" )->click();
+        cancelled.reject();
+        REQUIRE( PredefinedFiltersCollection::getSynced().getFilters()[0].color == original[0].color );
+        REQUIRE( PredefinedFiltersCollection::getSynced().colorScheme() == "latte" );
+    }
+    PredefinedFiltersDialog dialog;
+    auto* scheme = dialog.findChild<QComboBox*>( "filterColorScheme" );
+    REQUIRE( scheme );
+    REQUIRE( dialog.filtersTableWidget->cellWidget( 0, 3 )->property( "filterColor" ).value<QColor>() == original[0].color );
+    scheme->setCurrentIndex( scheme->findData( "vivid" ) );
+    dialog.addFilterButton->click();
+    REQUIRE( dialog.filtersTableWidget->rowCount() == 3 );
+    REQUIRE( dialog.filtersTableWidget->cellWidget( 2, 3 )->property( "filterColor" ).value<QColor>() == filterSchemeColor( "vivid", 2 ) );
+    // Applying the palette must not remove an unfinished row.
+    dialog.findChild<QPushButton*>( "applyFilterPalette" )->click();
+    REQUIRE( dialog.filtersTableWidget->rowCount() == 3 );
+    dialog.removeFilterButton->click();
+    dialog.buttonBox->button( QDialogButtonBox::Apply )->click();
+    const auto& saved = PredefinedFiltersCollection::getSynced();
+    REQUIRE( saved.colorScheme() == "vivid" );
+    REQUIRE( saved.getFilters()[0].color == filterSchemeColor( "vivid", 0 ) );
+    REQUIRE( saved.getFilters()[0].highlightMode == Mode::WholeLine );
+    REQUIRE( saved.getFilters()[1].highlightMode == Mode::Keywords );
+    REQUIRE( saved.getFilters()[1].pattern == original[1].pattern );
+    QTemporaryDir dir;
+    QSettings settings( dir.filePath( "palette.conf" ), QSettings::IniFormat );
+    saved.saveToStorage( settings );
+    PredefinedFiltersCollection recovered;
+    recovered.retrieveFromStorage( settings );
+    REQUIRE( recovered.colorScheme() == "vivid" );
+    REQUIRE( recovered.getFilters()[0].color == saved.getFilters()[0].color );
+    recovered.setColorScheme( "unknown-future-palette" );
+    REQUIRE( recovered.colorScheme() == "latte" );
+    PredefinedFiltersDialog reopened;
+    REQUIRE( reopened.findChild<QComboBox*>( "filterColorScheme" )->currentData().toString() == "vivid" );
+    for ( const auto& name : { "latte", "nord", "vivid" } ) {
+        for ( size_t index = 0; index < 18; ++index ) {
+            const auto background = filterSchemeColor( name, index );
+            const auto foreground = readableForeground( background );
+            const auto luminance = []( const QColor& color ) {
+                const auto linear = []( double channel ) { return channel <= 0.04045 ? channel / 12.92 : std::pow( ( channel + 0.055 ) / 1.055, 2.4 ); };
+                return 0.2126 * linear( color.redF() ) + 0.7152 * linear( color.greenF() ) + 0.0722 * linear( color.blueF() );
+            };
+            const auto light = luminance( background ), dark = luminance( foreground );
+            REQUIRE( ( std::max( light, dark ) + 0.05 ) / ( std::min( light, dark ) + 0.05 ) >= 4.5 );
+        }
+    }
 }
 
 TEST_CASE( "Readable labels provide eighteen choices and remain scrollable", "[ui][colors]" )

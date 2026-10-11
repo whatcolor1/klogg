@@ -1345,6 +1345,34 @@
         <source>Group</source>
         <translation>分组</translation>
     </message>
+    <message>
+        <source>Catppuccin Latte - soft</source>
+        <translation>Catppuccin Latte · 柔和</translation>
+    </message>
+    <message>
+        <source>Nord - cool</source>
+        <translation>Nord · 冷色</translation>
+    </message>
+    <message>
+        <source>Vivid - high contrast</source>
+        <translation>鲜明 · 高对比</translation>
+    </message>
+    <message>
+        <source>Used for new filters and remembered on saving. Existing colors stay unchanged until you apply the palette.</source>
+        <translation>新建过滤器使用此方案，保存后下次启动继续使用。套用配色前不会改变现有颜色。</translation>
+    </message>
+    <message>
+        <source>Apply palette to all</source>
+        <translation>一键套用到全部</translation>
+    </message>
+    <message>
+        <source>Replace colors in this table. Keep whole-line highlighting; other filters use keyword highlighting. Save with OK or Apply; Cancel discards changes.</source>
+        <translation>替换表格中的颜色。保留整行高亮，其他过滤器使用关键词高亮。点击确定或应用保存，取消则放弃更改。</translation>
+    </message>
+    <message>
+        <source>Color palette:</source>
+        <translation>配色方案：</translation>
+    </message>
 </context>
 <context>
     <name>QApplication</name>

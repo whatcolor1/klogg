@@ -75,6 +75,11 @@ class PredefinedFiltersCollection final : public Persistable<PredefinedFiltersCo
     Collection getSyncedFilters();
     Collection getFilters() const;
     void setFilters( const Collection& filters );
+    QString colorScheme() const { return colorScheme_; }
+    void setColorScheme( const QString& scheme ) {
+        colorScheme_ = ( scheme == QStringLiteral( "nord" ) || scheme == QStringLiteral( "vivid" ) )
+            ? scheme : QStringLiteral( "latte" );
+    }
     QList<FilterCombination> combinations() const { return combinations_; }
     void setCombinations( const QList<FilterCombination>& combinations ) { combinations_ = combinations; }
 
@@ -87,6 +92,7 @@ class PredefinedFiltersCollection final : public Persistable<PredefinedFiltersCo
     static constexpr int PredefinedFiltersCollection_VERSION = 2;
 
     Collection filters_;
+    QString colorScheme_ = QStringLiteral( "latte" );
     QList<FilterCombination> combinations_;
 };
 

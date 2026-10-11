@@ -41,6 +41,7 @@
 #include <QDialogButtonBox>
 #include <QComboBox>
 #include <QPushButton>
+#include <QLabel>
 #include <QMessageBox>
 #include <QRegularExpression>
 #include "highlighteredit.h"
@@ -96,6 +97,32 @@ PredefinedFiltersDialog::PredefinedFiltersDialog( QWidget* parent )
     setMinimumSize( 700, 360 );
     filtersTableWidget->setAlternatingRowColors( true );
     filtersTableWidget->setSelectionMode( QAbstractItemView::SingleSelection );
+
+    colorScheme_ = new QComboBox( this );
+    colorScheme_->setObjectName( "filterColorScheme" );
+    colorScheme_->addItem( tr( "Catppuccin Latte - soft" ), "latte" );
+    colorScheme_->addItem( tr( "Nord - cool" ), "nord" );
+    colorScheme_->addItem( tr( "Vivid - high contrast" ), "vivid" );
+    colorScheme_->setCurrentIndex( colorScheme_->findData( PredefinedFiltersCollection::getSynced().colorScheme() ) );
+    colorScheme_->setToolTip( tr( "Used for new filters and remembered on saving. Existing colors stay unchanged until you apply the palette." ) );
+    auto* applyPalette = new QPushButton( tr( "Apply palette to all" ), this );
+    applyPalette->setObjectName( "applyFilterPalette" );
+    applyPalette->setToolTip( tr( "Replace colors in this table. Keep whole-line highlighting; other filters use keyword highlighting. Save with OK or Apply; Cancel discards changes." ) );
+    auto* paletteRow = new QHBoxLayout;
+    paletteRow->addWidget( new QLabel( tr( "Color palette:" ), this ) );
+    paletteRow->addWidget( colorScheme_ );
+    paletteRow->addWidget( applyPalette );
+    paletteRow->addStretch();
+    verticalLayout_2->insertLayout( 1, paletteRow );
+    connect( applyPalette, &QPushButton::clicked, this, [this] {
+        for ( int i = 0; i < filtersTableWidget->rowCount(); ++i ) {
+            auto filter = readFilterRow( i );
+            filter.color = filterSchemeColor( colorScheme_->currentData().toString(), static_cast<size_t>( i ) );
+            if ( filter.highlightMode == PredefinedFilter::HighlightMode::Search )
+                filter.highlightMode = PredefinedFilter::HighlightMode::Keywords;
+            setFilterRow( i, filter );
+        }
+    } );
 
     populateFiltersTable( PredefinedFiltersCollection::getSynced().getFilters() );
 
@@ -182,7 +209,9 @@ void PredefinedFiltersDialog::populateFiltersTable(
 
 void PredefinedFiltersDialog::saveSettings() const
 {
-    PredefinedFiltersCollection::getSynced().saveToStorage( readFiltersTable() );
+    auto& collection = PredefinedFiltersCollection::getSynced();
+    collection.setColorScheme( colorScheme_->currentData().toString() );
+    collection.saveToStorage( readFiltersTable() );
 }
 
 void PredefinedFiltersDialog::setFilterRow( int row, const PredefinedFilter& filter )
@@ -256,7 +285,7 @@ void PredefinedFiltersDialog::addFilterRow( const QString& newFilter )
     const int row = filtersTableWidget->rowCount();
     filtersTableWidget->insertRow( row );
     PredefinedFilter filter{ {}, newFilter, false };
-    filter.color = QColor( readableColorPalette()[ static_cast<size_t>( row ) % readableColorPalette().size() ] );
+    filter.color = filterSchemeColor( colorScheme_->currentData().toString(), static_cast<size_t>( row ) );
     filter.highlightMode = PredefinedFilter::HighlightMode::Keywords;
     setFilterRow( row, filter );
     filtersTableWidget->setCurrentCell( row, 0 );
@@ -318,6 +347,7 @@ void PredefinedFiltersDialog::importFilters()
 
     PredefinedFiltersCollection collection;
     collection.retrieveFromStorage( settings );
+    colorScheme_->setCurrentIndex( colorScheme_->findData( collection.colorScheme() ) );
     populateFiltersTable( collection.getFilters() );
 }
 
@@ -338,6 +368,7 @@ void PredefinedFiltersDialog::exportFilters()
 
     PredefinedFiltersCollection collection;
     collection.setFilters( readFiltersTable() );
+    collection.setColorScheme( colorScheme_->currentData().toString() );
     collection.saveToStorage( settings );
 }
 

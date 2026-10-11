@@ -47,6 +47,7 @@ void PredefinedFiltersCollection::retrieveFromStorage( QSettings& settings )
     if ( settings.contains( "PredefinedFiltersCollection/version" ) ) {
         settings.beginGroup( "PredefinedFiltersCollection" );
         if ( settings.value( "version" ).toInt() <= PredefinedFiltersCollection_VERSION ) {
+            setColorScheme( settings.value( "color_scheme", "latte" ).toString() );
             filters_.clear();
 
             int size = settings.beginReadArray( "filters" );
@@ -94,6 +95,7 @@ void PredefinedFiltersCollection::saveToStorage( QSettings& settings ) const
 
     settings.beginGroup( "PredefinedFiltersCollection" );
     settings.setValue( "version", PredefinedFiltersCollection_VERSION );
+    settings.setValue( "color_scheme", colorScheme_ );
 
     settings.remove( "filters" );
 
@@ -148,6 +150,7 @@ PredefinedFiltersCollection::Collection PredefinedFiltersCollection::getSyncedFi
     const auto& synced = this->getSynced();
     filters_ = synced.getFilters();
     combinations_ = synced.combinations();
+    colorScheme_ = synced.colorScheme();
     return filters_;
 }
 

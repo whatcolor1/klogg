@@ -49,3 +49,25 @@ inline QColor automaticFilterColor( const QString& name )
     const auto& colors = readableColorPalette();
     return QColor( colors[ hash % colors.size() ] );
 }
+
+// Accents from the official Catppuccin Latte and Nord palettes, blended with
+// white for log backgrounds. This is a highlight palette, not an application theme.
+inline QColor filterSchemeColor( const QString& scheme, size_t index )
+{
+    if ( scheme == QStringLiteral( "vivid" ) ) {
+        const auto& colors = vividColorPalette();
+        return QColor( colors[index % colors.size()] );
+    }
+    static const std::array<const char*, 8> latte = {{
+        "#1e66f5", "#d20f39", "#40a02b", "#df8e1d",
+        "#8839ef", "#179299", "#fe640b", "#ea76cb"
+    }};
+    static const std::array<const char*, 8> nord = {{
+        "#5e81ac", "#bf616a", "#a3be8c", "#ebcb8b",
+        "#b48ead", "#8fbcbb", "#d08770", "#88c0d0"
+    }};
+    const auto& colors = scheme == QStringLiteral( "nord" ) ? nord : latte;
+    const QColor accent( colors[index % colors.size()] );
+    return QColor( ( accent.red() + 3 * 255 ) / 4,
+        ( accent.green() + 3 * 255 ) / 4, ( accent.blue() + 3 * 255 ) / 4 );
+}
