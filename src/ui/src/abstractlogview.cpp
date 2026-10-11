@@ -2161,7 +2161,7 @@ void AbstractLogView::createMenu()
             return;
         }
         QMessageBox::information( this, tr( "Elapsed time" ), tr( "%1 ms (%2 microseconds)" )
-            .arg( QString::number( *elapsed / 1000.0, 'f', 3 ) ).arg( *elapsed ) );
+            .arg( QString::number( static_cast<double>( *elapsed ) / 1000.0, 'f', 3 ) ).arg( *elapsed ) );
     } );
     popupMenu_->addSeparator();
     popupMenu_->addAction( replaceSearchAction_ );

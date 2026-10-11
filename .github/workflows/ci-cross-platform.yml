@@ -82,7 +82,7 @@ jobs:
             boost_1_86_0
           key: ${{ matrix.os }}-qt6-deps-${{ hashFiles('3rdparty/CMakeLists.txt') }}
       - name: Build application and tests
-        run: cmake --build build_root --parallel 2
+        run: cmake --build build_root --parallel 2 -- -k 0
       - name: Test
         run: ctest --test-dir build_root --output-on-failure --timeout 180
       - name: Upload test diagnostics

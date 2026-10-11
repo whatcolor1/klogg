@@ -52,9 +52,9 @@ struct PredefinedFilter {
     bool useRegex;
     // Existing presets retain the normal search highlight until explicitly styled.
     enum class HighlightMode { Search = 0, Keywords = 1, WholeLine = 2 };
-    QColor color;
+    QColor color{};
     HighlightMode highlightMode = HighlightMode::Search;
-    QString group;
+    QString group{};
 };
 
 struct FilterCombination {

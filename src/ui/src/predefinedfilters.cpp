@@ -114,11 +114,11 @@ void PredefinedFiltersCollection::saveToStorage( QSettings& settings ) const
     }
     settings.endArray();
     settings.remove( "combinations" );
-    settings.beginWriteArray( "combinations", combinations_.size() );
+    settings.beginWriteArray( "combinations", static_cast<int>( combinations_.size() ) );
     for ( int i = 0; i < combinations_.size(); ++i ) {
         settings.setArrayIndex( i );
         settings.setValue( "name", combinations_[i].name );
-        settings.beginWriteArray( "members", combinations_[i].filters.size() );
+        settings.beginWriteArray( "members", static_cast<int>( combinations_[i].filters.size() ) );
         for ( int j = 0; j < combinations_[i].filters.size(); ++j ) {
             settings.setArrayIndex( j );
             const auto& f = combinations_[i].filters[j];

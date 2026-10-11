@@ -130,7 +130,7 @@ class QueryStore {
         }
         QList<Query> queries;
         if ( !load( &queries, error ) ) return false;
-        for ( int i = queries.size() - 1; i >= 0; --i ) if ( queries[ i ].name == query.name ) queries.removeAt( i );
+        for ( auto i = queries.size() - 1; i >= 0; --i ) if ( queries[ i ].name == query.name ) queries.removeAt( i );
         if ( !remove ) {
             Query checked;
             if ( !Query::fromJson( query.toJson(), &checked ) ) return false;
