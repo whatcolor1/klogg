@@ -83,6 +83,8 @@
 
 检查结果以对应提交的 [Actions](https://github.com/whatcolor1/klogg/actions) 为准。Linux/macOS GUI 测试采用 offscreen 平台，不等于所有桌面系统的交互和外观人工验收。上述范围不包含 Qt5、Apple Silicon、其他 Linux 发行版，也不包含 macOS 签名、公证和安装包验证。保留上游历史发布脚本，但本 Fork 的交付入口是上述 Windows 工作流。
 
+macOS CI 会取消预装 simdutf 的 Homebrew 链接，保证编译器使用的头文件和 CPM 锁定的库源码一致。此操作仅作用于临时 CI 机器。手动构建也应避免把另一版本的系统头文件混入项目依赖。
+
 ## 维护与来源
 
 功能分布在过滤器面板、颜色辅助、查询／暂存器存储和界面组件中，避免无关重构 `logdata/regex`。回归测试覆盖过滤器切换与高亮、查询方案执行、会话保存、暂存恢复和失败重试等行为。

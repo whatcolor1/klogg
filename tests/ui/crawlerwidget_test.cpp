@@ -558,7 +558,7 @@ TEST_CASE( "Preset clicks run search and recover the selected preset", "[ui][pre
         { "Line ten", "000010", false }, { "Line twenty", "000020", false } };
     panel->setFilters( filters );
     const auto buttons = panel->findChildren<QToolButton*>();
-    int enabled = 0;
+    size_t enabled = 0;
     for ( const auto& filter : filters ) {
         auto button = std::find_if( buttons.cbegin(), buttons.cend(),
             [&filter]( const auto* b ) { return b->text() == filter.name; } );

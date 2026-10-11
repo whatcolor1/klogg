@@ -42,6 +42,17 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: brew install ragel ninja pkg-config
+      - name: Isolate pinned simdutf headers
+        if: runner.os == 'macOS'
+        run: |
+          # Homebrew's preinstalled headers can shadow CPM's pinned headers.
+          if brew list --versions simdutf >/dev/null 2>&1; then
+            brew unlink simdutf
+          fi
+          if [ -e "$(brew --prefix)/include/simdutf.h" ]; then
+            echo '::error::An unpinned simdutf header still shadows the CPM dependency'
+            exit 1
+          fi
       - name: Install macOS Qt
         if: runner.os == 'macOS'
         uses: jurplel/install-qt-action@v4
