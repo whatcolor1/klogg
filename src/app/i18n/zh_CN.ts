@@ -2329,5 +2329,83 @@
         <translation>越南语</translation>
     </message>
 </context>
+<context>
+    <name>ScratchPad</name>
+    <message>
+        <source>From base64</source>
+        <translation>Base64 解码</translation>
+    </message>
+    <message>
+        <source>To base64</source>
+        <translation>Base64 编码</translation>
+    </message>
+    <message>
+        <source>From hex</source>
+        <translation>十六进制解码</translation>
+    </message>
+    <message>
+        <source>To hex</source>
+        <translation>十六进制编码</translation>
+    </message>
+    <message>
+        <source>Decode url</source>
+        <translation>URL 解码</translation>
+    </message>
+    <message>
+        <source>Format json</source>
+        <translation>格式化 JSON</translation>
+    </message>
+    <message>
+        <source>Format xml</source>
+        <translation>格式化 XML</translation>
+    </message>
+    <message>
+        <source>CRC32 hex</source>
+        <translation>CRC32（十六进制）</translation>
+    </message>
+    <message>
+        <source>CRC32 dec</source>
+        <translation>CRC32（十进制）</translation>
+    </message>
+    <message>
+        <source>File time</source>
+        <translation>Windows 文件时间</translation>
+    </message>
+    <message>
+        <source>Dec-&gt;Hex</source>
+        <translation>十进制 → 十六进制</translation>
+    </message>
+    <message>
+        <source>Hex-&gt;Dec</source>
+        <translation>十六进制 → 十进制</translation>
+    </message>
+    <message>
+        <source>Copied to clipboard</source>
+        <translation>已复制到剪贴板</translation>
+    </message>
+    <message>
+        <source>Empty transformation</source>
+        <translation>转换结果为空</translation>
+    </message>
+    <message>
+        <source>Time</source>
+        <translation>时间</translation>
+    </message>
+    <message>
+        <source>TimeZone</source>
+        <translation>时区</translation>
+    </message>
+</context>
+<context>
+    <name>TabbedScratchPad</name>
+    <message>
+        <source>You can add tabs by pressing &lt;b&gt;"+"&lt;/b&gt; or Ctrl+N</source>
+        <translation>点击 &lt;b&gt;“+”&lt;/b&gt; 或按 Ctrl+N 新建暂存页</translation>
+    </message>
+    <message>
+        <source>Scratchpad %1</source>
+        <translation>暂存页 %1</translation>
+    </message>
+</context>
 </TS>
 
