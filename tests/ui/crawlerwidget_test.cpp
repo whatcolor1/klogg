@@ -33,6 +33,7 @@
 #include "sessioninfo.h"
 #include "configuration.h"
 #include "readablecolors.h"
+#include "loganalysishelpers.h"
 #include "colorlabelsmanager.h"
 #include "ui_predefinedfiltersdialog.h"
 #include "predefinedfiltersdialog.h"
@@ -61,6 +62,84 @@
 #include "crawlerwidget.h"
 
 static const qint64 SL_NB_LINES = 100LL;
+
+TEST_CASE( "Field tracking distinguishes IDs and elapsed time refuses ambiguous timestamps", "[ui][analysis]" )
+{
+    using namespace LogAnalysis;
+    const auto pattern = fieldPattern( "frameNumber=1234 requestId=87", "1234" );
+    REQUIRE_FALSE( pattern.isEmpty() );
+    QRegularExpression expression( pattern );
+    REQUIRE( expression.isValid() );
+    REQUIRE( expression.match( "frameNumber: 1234 result" ).hasMatch() );
+    REQUIRE_FALSE( expression.match( "frameNumber=12345" ).hasMatch() );
+    REQUIRE_FALSE( expression.match( "requestId=1234" ).hasMatch() );
+    REQUIRE_FALSE( expression.match( "frameNumber=1234.5" ).hasMatch() );
+    REQUIRE( fieldPattern( "frameNumber=87 requestId=87", "87" ).isEmpty() );
+    REQUIRE_FALSE( fieldPattern( "frameNumber=87 requestId=87", "requestId=87" ).isEmpty() );
+    REQUIRE( fieldPattern( "exposure=1234", "1234" ).isEmpty() );
+    REQUIRE_FALSE( fieldPattern( "requestId=ab.c", "ab.c" ).isEmpty() );
+    REQUIRE( elapsedMicroseconds( "10-11 00:00:00.000001 A", "10-11 00:00:00.123456 B" ) == 123455 );
+    REQUIRE( elapsedMicroseconds( "2026-10-11T23:59:59.900 A", "2026-10-12T00:00:00.100 B" ) == 200000 );
+    REQUIRE( elapsedMicroseconds( "12:00:00 A", "12:00:01,25 B" ) == 1250000 );
+    REQUIRE_FALSE( elapsedMicroseconds( "23:59:59 A", "00:00:01 B" ) );
+    REQUIRE_FALSE( elapsedMicroseconds( "12:00:00 A", "2026-10-11 12:00:01 B" ) );
+    REQUIRE_FALSE( timestamp( "2026-02-30 12:00:00 A" ) );
+    REQUIRE_FALSE( timestamp( "25:00:00 A" ) );
+    REQUIRE_FALSE( timestamp( "12:00:00.1234567 A" ) );
+    REQUIRE_FALSE( timestamp( "2026-10-11T12:00:00Z A" ) );
+    REQUIRE_FALSE( timestamp( "message contains 12:00:00" ) );
+}
+
+TEST_CASE( "Filter groups preserve active members and combinations restore atomically", "[ui][presets][groups]" )
+{
+    using Mode = PredefinedFilter::HighlightMode;
+    const QList<PredefinedFilter> filters = {
+        { "Streams", "configure_streams", false, QColor( "#dbeafe" ), Mode::Keywords, "Setup" },
+        { "Requests", "request", false, QColor( "#ffe4e6" ), Mode::Keywords, "Capture" },
+        { "Errors", "error", false }
+    };
+    auto& settings = PredefinedFiltersCollection::getSynced();
+    const auto oldCombinations = settings.combinations();
+    struct Restore {
+        QList<FilterCombination> entries;
+        ~Restore() { auto& c = PredefinedFiltersCollection::getSynced(); c.setCombinations( entries ); c.save(); }
+    } restore{ oldCombinations };
+    PredefinedFiltersButtonPanel panel;
+    panel.resize( 1600, 100 );
+    panel.setFilters( filters );
+    panel.show();
+    panel.setActiveFilters( { filters[0], filters[1] } );
+    QSignalSpy changed( &panel, &PredefinedFiltersButtonPanel::filtersChanged );
+    panel.setGroup( "Capture" );
+    REQUIRE( panel.activeFilters().size() == 2 );
+    REQUIRE( changed.count() == 0 );
+    for ( auto* button : panel.findChildren<QToolButton*>() ) {
+        if ( button->text() == "Streams" ) REQUIRE( button->isHidden() );
+        if ( button->text() == "Requests" ) REQUIRE_FALSE( button->isHidden() );
+    }
+    REQUIRE( panel.saveCombination( "test capture combination" ) );
+    panel.setActiveFilters( {} );
+    REQUIRE( panel.applyCombination( "test capture combination" ) );
+    REQUIRE( panel.activeFilters().size() == 2 );
+    REQUIRE( changed.count() == 1 );
+    panel.setFilters( { filters[1] } );
+    REQUIRE_FALSE( panel.applyCombination( "test capture combination" ) );
+    REQUIRE( panel.activeFilters().size() == 1 );
+    REQUIRE( changed.count() == 1 );
+
+    QTemporaryDir directory;
+    QSettings disk( directory.filePath( "groups.ini" ), QSettings::IniFormat );
+    PredefinedFiltersCollection collection;
+    collection.setFilters( filters );
+    collection.setCombinations( { { "Capture", { filters[0], filters[1] } } } );
+    collection.saveToStorage( disk );
+    PredefinedFiltersCollection recovered;
+    recovered.retrieveFromStorage( disk );
+    REQUIRE( recovered.getFilters()[0].group == "Setup" );
+    REQUIRE( recovered.combinations().size() == 1 );
+    REQUIRE( recovered.combinations()[0].filters.size() == 2 );
+    REQUIRE( recovered.combinations()[0].filters[1].pattern == "request" );
+}
 
 namespace {
 bool generateDataFiles( QTemporaryFile& file )
@@ -185,6 +264,22 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
     }
 
     LinesCount markCount() { return crawler->logFilteredData_->getNbMarks(); }
+
+    void trackField( const QString& pattern ) { crawler->trackField( pattern ); }
+
+    bool markersStayInGutter()
+    {
+        for ( auto* view : { static_cast<AbstractLogView*>( crawler->logMainView_ ),
+                            static_cast<AbstractLogView*>( crawler->filteredView_ ) } ) {
+            const auto image = view->viewport()->grab().toImage();
+            for ( int y = 0; y < image.height(); ++y ) {
+                for ( int x = image.width() / 2; x < image.width(); ++x ) {
+                    if ( image.pixelColor( x, y ) == QColor( "#c2410c" ) ) return false;
+                }
+            }
+        }
+        return true;
+    }
 
     void verifyInterfaceFontIsolation()
     {
@@ -559,7 +654,7 @@ TEST_CASE( "Preset colors persist, preserve legacy settings, and move with edito
     PredefinedFiltersDialog dialog;
     dialog.show();
     QTest::qWait( 50 );
-    REQUIRE( dialog.filtersTableWidget->columnCount() == 5 );
+    REQUIRE( dialog.filtersTableWidget->columnCount() == 6 );
     dialog.filtersTableWidget->setCurrentCell( 0, 0 );
     dialog.downButton->click();
     REQUIRE( dialog.filtersTableWidget->item( 1, 0 )->text() == "Error" );
@@ -619,6 +714,7 @@ TEST_CASE( "Colored keyword and whole-line presets compose and M marks stand out
     visitor.toggleMark();
     REQUIRE( waitUiState( [&] { return visitor.markCount() == 1_lcount; } ) );
     REQUIRE( waitUiState( [&] { return visitor.bothViewsHaveHighlight( QColor( "#c2410c" ) ); } ) );
+    REQUIRE( visitor.markersStayInGutter() );
     visitor.crawler->grab().save( "ui-prominent-m-mark.png" );
     visitor.toggleMark();
     REQUIRE( waitUiState( [&] { return visitor.markCount() == 0_lcount; } ) );
@@ -716,5 +812,28 @@ TEST_CASE( "Interface typography and compact colored controls", "[ui][appearance
         menu->hide();
     }
     else window.grab().save( "ui-compact-controls.png" );
+}
+
+TEST_CASE( "Field tracking searches immediately without matching other numeric fields", "[ui][analysis]" )
+{
+    QTemporaryFile file;
+    REQUIRE( file.open() );
+    file.write( "10-11 01:00:00.000 frameNumber=1234 start\n"
+                "10-11 01:00:00.001 requestId=1234 unrelated\n"
+                "10-11 01:00:00.002 frameNumber=12345 unrelated\n"
+                "10-11 01:00:00.003 frameNumber: 1234 end\n" );
+    file.flush();
+    file.close();
+    Session session;
+    CrawlerWidgetVisitor visitor;
+    visitor.crawler.reset( static_cast<CrawlerWidget*>(
+        session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
+    REQUIRE( waitUiState( [&] { return visitor.isLoadingFinished(); } ) );
+    visitor.trackField( LogAnalysis::fieldPattern( "frameNumber=1234", "1234" ) );
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines() == 2_lcount; } ) );
+    REQUIRE( visitor.filteredContains( "frameNumber=1234" ) );
+    REQUIRE( visitor.filteredContains( "frameNumber: 1234" ) );
+    REQUIRE_FALSE( visitor.filteredContains( "requestId=1234" ) );
+    REQUIRE_FALSE( visitor.filteredContains( "frameNumber=12345" ) );
 }
 

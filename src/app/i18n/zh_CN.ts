@@ -165,6 +165,58 @@
         <source>Color labels</source>
         <translation type="unfinished">颜色标签</translation>
     </message>
+    <message>
+        <source>Track selected field ID</source>
+        <translation>追踪选中的字段 ID</translation>
+    </message>
+    <message>
+        <source>Track field ID</source>
+        <translation>追踪字段 ID</translation>
+    </message>
+    <message>
+        <source>Select an ID value or a complete field=value pair first.</source>
+        <translation>请先选中 ID 值或完整的 字段=值。</translation>
+    </message>
+    <message>
+        <source>No unique ID field was found. Select the complete field=value pair, such as frameNumber=1234 or requestId:87.</source>
+        <translation>无法确定唯一的 ID 字段。请选择完整的字段和值，例如 frameNumber=1234 或 requestId:87。</translation>
+    </message>
+    <message>
+        <source>Use this line as elapsed-time start</source>
+        <translation>将此行设为计时起点</translation>
+    </message>
+    <message>
+        <source>Elapsed time</source>
+        <translation>两行耗时</translation>
+    </message>
+    <message>
+        <source>No supported timestamp at the beginning of this line. Supported: HH:mm:ss.ffffff, MM-DD HH:mm:ss.ffffff, YYYY-MM-DD HH:mm:ss.ffffff.</source>
+        <translation>此行开头没有支持的时间戳。支持 时:分:秒.微秒、月-日 时:分:秒.微秒、年-月-日 时:分:秒.微秒。</translation>
+    </message>
+    <message>
+        <source>Elapsed-time start saved</source>
+        <translation>已保存计时起点</translation>
+    </message>
+    <message>
+        <source>Right-click the end line and choose Calculate elapsed time from start.</source>
+        <translation>右键单击终点行，选择“计算从起点到此行的耗时”。</translation>
+    </message>
+    <message>
+        <source>Calculate elapsed time from start</source>
+        <translation>计算从起点到此行的耗时</translation>
+    </message>
+    <message>
+        <source>Elapsed time unavailable</source>
+        <translation>无法计算耗时</translation>
+    </message>
+    <message>
+        <source>Set a start line first. Both lines must have compatible timestamps in chronological order. Midnight without dates and timezone offsets are not inferred.</source>
+        <translation>请先设置起点。两行时间戳需格式兼容且时间递增；无日期的跨午夜时间和时区偏移不作推算。</translation>
+    </message>
+    <message>
+        <source>%1 ms (%2 microseconds)</source>
+        <translation>%1 毫秒（%2 微秒）</translation>
+    </message>
 </context>
 <context>
     <name>CrawlerWidget</name>
@@ -1209,6 +1261,10 @@
         <source>Invalid regular expression</source>
         <translation>正则表达式无效</translation>
     </message>
+    <message>
+        <source>Group</source>
+        <translation>分组</translation>
+    </message>
 </context>
 <context>
     <name>QApplication</name>
@@ -2093,5 +2149,54 @@
         <source>Click to toggle; right-click to edit colors and highlighting.</source>
         <translation>单击开启或关闭；右键编辑颜色及高亮范围。</translation>
     </message>
+    <message>
+        <source>All groups</source>
+        <translation>全部分组</translation>
+    </message>
+    <message>
+        <source>Ungrouped</source>
+        <translation>未分组</translation>
+    </message>
+    <message>
+        <source>Save enabled filters as combination…</source>
+        <translation>将当前启用的过滤器保存为组合…</translation>
+    </message>
+    <message>
+        <source>Save combination</source>
+        <translation>保存组合</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>名称：</translation>
+    </message>
+    <message>
+        <source>Replace combination</source>
+        <translation>替换组合</translation>
+    </message>
+    <message>
+        <source>Replace the saved combination with this name?</source>
+        <translation>替换同名的已保存组合？</translation>
+    </message>
+    <message>
+        <source>Load combination</source>
+        <translation>载入组合</translation>
+    </message>
+    <message>
+        <source>Delete combination</source>
+        <translation>删除组合</translation>
+    </message>
+    <message>
+        <source>Combination unavailable</source>
+        <translation>组合不可用</translation>
+    </message>
+    <message>
+        <source>Some filters were changed or deleted. The current search was kept.</source>
+        <translation>部分过滤器已修改或删除，当前搜索保持不变。</translation>
+    </message>
+    <message>
+        <source>Click to toggle; right-click to edit filters or save/load combinations.</source>
+        <translation>单击立即切换；右键编辑过滤器或保存、载入组合。</translation>
+    </message>
 </context>
 </TS>
+

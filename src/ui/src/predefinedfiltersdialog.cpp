@@ -163,14 +163,16 @@ void PredefinedFiltersDialog::populateFiltersTable(
     filtersTableWidget->clear();
 
     filtersTableWidget->setRowCount( static_cast<int>( filters.size() ) );
-    filtersTableWidget->setColumnCount( 5 );
+    filtersTableWidget->setColumnCount( 6 );
     filtersTableWidget->setHorizontalHeaderLabels( {
-        tr( "Name" ), tr( "Pattern" ), tr( "Regex" ), tr( "Color" ), tr( "Highlight" ) } );
+        tr( "Name" ), tr( "Pattern" ), tr( "Regex" ), tr( "Color" ), tr( "Highlight" ), tr( "Group" ) } );
     for ( int i = 0; i < filters.size(); ++i ) setFilterRow( i, filters[i] );
     auto* header = filtersTableWidget->horizontalHeader();
     header->setSectionResizeMode( 0, QHeaderView::Interactive );
     header->resizeSection( 0, 180 );
     header->setSectionResizeMode( 1, QHeaderView::Stretch );
+    header->setSectionResizeMode( 5, QHeaderView::Interactive );
+    header->resizeSection( 5, 130 );
     for ( int i = 2; i < 5; ++i ) header->setSectionResizeMode( i, QHeaderView::ResizeToContents );
     filtersTableWidget->verticalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
     filtersTableWidget->setWordWrap( false );
@@ -216,6 +218,7 @@ void PredefinedFiltersDialog::setFilterRow( int row, const PredefinedFilter& fil
     } );
     filtersTableWidget->setCellWidget( row, 3, color );
     filtersTableWidget->setCellWidget( row, 4, mode );
+    filtersTableWidget->setItem( row, 5, new QTableWidgetItem( filter.group ) );
 }
 
 PredefinedFilter PredefinedFiltersDialog::readFilterRow( int row ) const
@@ -229,6 +232,7 @@ PredefinedFilter PredefinedFiltersDialog::readFilterRow( int row ) const
     if ( color ) filter.color = color->property( "filterColor" ).value<QColor>();
     auto* mode = qobject_cast<QComboBox*>( filtersTableWidget->cellWidget( row, 4 ) );
     if ( mode ) filter.highlightMode = static_cast<PredefinedFilter::HighlightMode>( mode->currentIndex() );
+    if ( auto* item = filtersTableWidget->item( row, 5 ) ) filter.group = item->text().trimmed();
     return filter;
 }
 

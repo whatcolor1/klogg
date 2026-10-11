@@ -60,7 +60,24 @@ void PredefinedFiltersCollection::retrieveFromStorage( QSettings& settings )
                                       settings.value( "regex", true ).toBool(),
                                       QColor( settings.value( "color" ).toString() ),
                                       static_cast<PredefinedFilter::HighlightMode>(
-                                          qBound( 0, settings.value( "highlight_mode", 0 ).toInt(), 2 ) ) } );
+                                          qBound( 0, settings.value( "highlight_mode", 0 ).toInt(), 2 ) ),
+                                      settings.value( "group" ).toString() } );
+            }
+            settings.endArray();
+            combinations_.clear();
+            const int count = settings.beginReadArray( "combinations" );
+            for ( int i = 0; i < count; ++i ) {
+                settings.setArrayIndex( i );
+                FilterCombination combination;
+                combination.name = settings.value( "name" ).toString();
+                const int members = settings.beginReadArray( "members" );
+                for ( int j = 0; j < members; ++j ) {
+                    settings.setArrayIndex( j );
+                    combination.filters.append( { settings.value( "name" ).toString(),
+                        settings.value( "pattern" ).toString(), settings.value( "regex", true ).toBool() } );
+                }
+                settings.endArray();
+                if ( !combination.name.isEmpty() ) combinations_.append( combination );
             }
             settings.endArray();
         }
@@ -87,10 +104,27 @@ void PredefinedFiltersCollection::saveToStorage( QSettings& settings ) const
         settings.setValue( "name", filter.name );
         settings.setValue( "filter", filter.pattern );
         settings.setValue( "regex", filter.useRegex );
+        settings.setValue( "group", filter.group );
         settings.setValue( "color", filter.color.isValid() ? filter.color.name( QColor::HexArgb ) : QString{} );
         settings.setValue( "highlight_mode", static_cast<int>( filter.highlightMode ) );
 
         arrayIndex++;
+    }
+    settings.endArray();
+    settings.remove( "combinations" );
+    settings.beginWriteArray( "combinations", combinations_.size() );
+    for ( int i = 0; i < combinations_.size(); ++i ) {
+        settings.setArrayIndex( i );
+        settings.setValue( "name", combinations_[i].name );
+        settings.beginWriteArray( "members", combinations_[i].filters.size() );
+        for ( int j = 0; j < combinations_[i].filters.size(); ++j ) {
+            settings.setArrayIndex( j );
+            const auto& f = combinations_[i].filters[j];
+            settings.setValue( "name", f.name );
+            settings.setValue( "pattern", f.pattern );
+            settings.setValue( "regex", f.useRegex );
+        }
+        settings.endArray();
     }
     settings.endArray();
     settings.endGroup();
@@ -111,7 +145,9 @@ PredefinedFiltersCollection::Collection PredefinedFiltersCollection::getFilters(
 
 PredefinedFiltersCollection::Collection PredefinedFiltersCollection::getSyncedFilters()
 {
-    filters_ = this->getSynced().getFilters();
+    const auto& synced = this->getSynced();
+    filters_ = synced.getFilters();
+    combinations_ = synced.combinations();
     return filters_;
 }
 

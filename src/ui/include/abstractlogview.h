@@ -219,6 +219,7 @@ class AbstractLogView : public QAbstractScrollArea, public SearchableWidgetInter
     // Sent up when the user wants to replace the search with the selection
     void replaceSearch( const QString& selection );
     void excludeFromSearch( const QString& selection );
+    void trackFieldRequested( const QString& regex );
     // Sent up when the mouse is hovered over a line's margin
     void mouseHoveredOverLine( LineNumber line );
     // Sent up when the mouse leaves a line's margin
@@ -360,6 +361,7 @@ class AbstractLogView : public QAbstractScrollArea, public SearchableWidgetInter
 
     Selection selection_;
     RegularExpressionPattern searchPattern_;
+    QString elapsedStartText_;
 
     std::vector<QuickHighlighters> quickHighlighters_ = std::vector<QuickHighlighters>{ 18 };
     klogg::vector<Highlighter> predefinedFilterHighlighters_;

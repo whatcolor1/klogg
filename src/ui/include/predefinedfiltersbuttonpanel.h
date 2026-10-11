@@ -15,6 +15,9 @@ class PredefinedFiltersButtonPanel : public QWidget {
     void setFilters( const QList<PredefinedFilter>& filters );
     void setActiveFilters( const QList<PredefinedFilter>& filters );
     QList<PredefinedFilter> activeFilters() const { return active_; }
+    void setGroup( const QString& group );
+    bool saveCombination( const QString& name );
+    bool applyCombination( const QString& name );
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
 
@@ -32,6 +35,8 @@ class PredefinedFiltersButtonPanel : public QWidget {
     QList<PredefinedFilter> active_;
     QVector<QToolButton*> buttons_;
     QToolButton* more_;
+    QToolButton* groupButton_;
+    QString group_;
     QMenu* menu_;
     int preferredHeight_ = 0;
 };

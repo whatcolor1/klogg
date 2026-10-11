@@ -964,6 +964,20 @@ void CrawlerWidget::excludeFromSearch( const QString& searchString )
     setSearchPattern( currentPattern );
 }
 
+void CrawlerWidget::trackField( const QString& regex )
+{
+    applyingPredefinedFilter_ = true;
+    booleanButton_->setChecked( false );
+    inverseButton_->setChecked( false );
+    useRegexpButton_->setChecked( true );
+    setSearchPattern( regex );
+    applyingPredefinedFilter_ = false;
+    predefinedFiltersPanel_->setActiveFilters( {} );
+    predefinedFilters_->setSelectedFilters( {} );
+    updatePredefinedFilterHighlights();
+    startNewSearch();
+}
+
 void CrawlerWidget::replaceSearch( const QString& searchString )
 {
     setSearchPattern( escapeSearchPattern( searchString ) );
@@ -1275,6 +1289,8 @@ void CrawlerWidget::setup()
     connect( logMainView_, &LogMainView::newSelection, this,
              &CrawlerWidget::updateLineNumberHandler );
 
+    connect( logMainView_, &AbstractLogView::trackFieldRequested, this, &CrawlerWidget::trackField );
+
     connect( logMainView_, &LogMainView::markLines, this, &CrawlerWidget::markLinesFromMain );
 
     connect( logMainView_, &LogMainView::highlightersChange, this,
@@ -1434,6 +1450,8 @@ void CrawlerWidget::connectAllFilteredViewSlots( FilteredView* view )
     connect( view, &FilteredView::newSelection, view, [ view ]( auto ) { view->update(); } );
 
     connect( view, &FilteredView::newSelection, this, &CrawlerWidget::jumpToMatchingLine );
+
+    connect( view, &AbstractLogView::trackFieldRequested, this, &CrawlerWidget::trackField );
 
     connect( view, &FilteredView::markLines, this, &CrawlerWidget::markLinesFromFiltered );
 
@@ -2016,3 +2034,4 @@ QString CrawlerWidgetContext::toString() const
 
     return QJsonDocument::fromVariant( properies ).toJson( QJsonDocument::Compact );
 }
+

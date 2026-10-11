@@ -239,6 +239,7 @@ class CrawlerWidget : public QSplitter,
 
     // Called when the user replaces the search with the selection string
     void replaceSearch( const QString& string );
+    void trackField( const QString& regex );
 
     // Called when the user excludes selection string from search
     // works only in boolean combination mode
@@ -439,3 +440,4 @@ class CrawlerWidget : public QSplitter,
 };
 
 #endif
+

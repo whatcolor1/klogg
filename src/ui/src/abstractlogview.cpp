@@ -80,6 +80,8 @@
 
 #include "abstractlogview.h"
 #include "readablecolors.h"
+#include "loganalysishelpers.h"
+#include <QMessageBox>
 #include "containers.h"
 #include "highlightedmatch.h"
 #include "linetypes.h"
@@ -2121,6 +2123,44 @@ void AbstractLogView::createMenu()
     popupMenu_->addAction( findNextAction_ );
     popupMenu_->addAction( findPreviousAction_ );
     popupMenu_->addSeparator();
+    popupMenu_->addAction( tr( "Track selected field ID" ), this, [this] {
+        const auto line = selection_.selectedLine();
+        if ( !line || !selection_.isPortion() || *line >= logData_->getNbLine() ) {
+            QMessageBox::information( this, tr( "Track field ID" ), tr( "Select an ID value or a complete field=value pair first." ) );
+            return;
+        }
+        const auto pattern = LogAnalysis::fieldPattern( logData_->getExpandedLineString( *line ),
+            selection_.getSelectedText( logData_ ) );
+        if ( pattern.isEmpty() ) {
+            QMessageBox::information( this, tr( "Track field ID" ), tr( "No unique ID field was found. Select the complete field=value pair, such as frameNumber=1234 or requestId:87." ) );
+            return;
+        }
+        Q_EMIT trackFieldRequested( pattern );
+    } );
+    popupMenu_->addAction( tr( "Use this line as elapsed-time start" ), this, [this] {
+        const auto line = selection_.selectedLine();
+        if ( !line || *line >= logData_->getNbLine() ) return;
+        const auto text = logData_->getLineString( *line );
+        if ( !LogAnalysis::timestamp( text ) ) {
+            QMessageBox::information( this, tr( "Elapsed time" ), tr( "No supported timestamp at the beginning of this line. Supported: HH:mm:ss.ffffff, MM-DD HH:mm:ss.ffffff, YYYY-MM-DD HH:mm:ss.ffffff." ) );
+            return;
+        }
+        elapsedStartText_ = text;
+        QMessageBox::information( this, tr( "Elapsed-time start saved" ), tr( "Right-click the end line and choose Calculate elapsed time from start." ) );
+    } );
+    popupMenu_->addAction( tr( "Calculate elapsed time from start" ), this, [this] {
+        const auto line = selection_.selectedLine();
+        if ( !line || *line >= logData_->getNbLine() ) return;
+        const auto end = logData_->getLineString( *line );
+        const auto elapsed = LogAnalysis::elapsedMicroseconds( elapsedStartText_, end );
+        if ( !elapsed ) {
+            QMessageBox::information( this, tr( "Elapsed time unavailable" ), tr( "Set a start line first. Both lines must have compatible timestamps in chronological order. Midnight without dates and timezone offsets are not inferred." ) );
+            return;
+        }
+        QMessageBox::information( this, tr( "Elapsed time" ), tr( "%1 ms (%2 microseconds)" )
+            .arg( QString::number( *elapsed / 1000.0, 'f', 3 ) ).arg( *elapsed ) );
+    } );
+    popupMenu_->addSeparator();
     popupMenu_->addAction( replaceSearchAction_ );
     popupMenu_->addAction( addToSearchAction_ );
     popupMenu_->addAction( excludeFromSearchAction_ );
@@ -2566,10 +2606,6 @@ void AbstractLogView::drawTextArea( QPaintDevice* paintDevice )
             const QColor marker( "#c2410c" );
             const int stripeWidth = std::max( 3, BulletAreaWidth / 4 );
             painter->fillRect( 0, yPos, stripeWidth, finalLineHeight, marker );
-            painter->setPen( QPen( marker, 2 ) );
-            painter->drawLine( xPos, yPos, viewport()->width() - 1, yPos );
-            painter->drawLine( xPos, yPos + finalLineHeight - 1,
-                               viewport()->width() - 1, yPos + finalLineHeight - 1 );
             painter->restore();
             // Larger flag for M marks, distinct from ordinary matching circles.
             const QPointF points[ 7 ] = {
