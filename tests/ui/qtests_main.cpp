@@ -71,7 +71,11 @@ class TestRunner : public QObject {
 int main( int argc, char* argv[] )
 {
     QApplication a( argc, argv );
-    StyleManager::applyStyle( StyleManager::defaultPlatformStyle() );
+    // Native styles may depend on the desktop platform (for example Cocoa).
+    // Exercise portable widget behavior with Fusion in the offscreen runner;
+    // native appearance checks continue to use the actual platform style.
+    StyleManager::applyStyle( QGuiApplication::platformName() == QStringLiteral( "offscreen" )
+        ? QString( StyleManager::FusionKey ) : StyleManager::defaultPlatformStyle() );
 
     logging::enableLogging();
 
