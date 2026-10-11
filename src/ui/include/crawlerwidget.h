@@ -334,7 +334,7 @@ class CrawlerWidget : public QSplitter,
     void changeDataStatus( DataStatus status );
     void updateEncoding();
     void changeTopViewSize( int32_t delta );
-    void updatePredefinedFiltersWidget();
+    void updatePredefinedFiltersWidget( const QString& appliedText );
 
     // Reload predefined filters after changing settings
     void reloadPredefinedFilters() const;
@@ -383,6 +383,8 @@ class CrawlerWidget : public QSplitter,
     PredefinedFiltersButtonPanel* predefinedFiltersPanel_;
     bool restoredSearchPending_ = false;
     bool applyingPredefinedFilter_ = false;
+    // The editable search/history text is a draft until a search is executed.
+    QString appliedSearchText_;
 
     QComboBox* searchLineEdit_;
     QMenu* searchLineContextMenu_;

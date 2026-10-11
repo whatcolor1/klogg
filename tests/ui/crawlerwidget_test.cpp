@@ -47,6 +47,8 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QFontDatabase>
+#include <QLineEdit>
+#include <QSignalBlocker>
 #include "styles.h"
 #include <qglobal.h>
 #include <qnamespace.h>
@@ -266,6 +268,23 @@ struct CrawlerWidget::access_by<CrawlerWidgetPrivate> {
     LinesCount markCount() { return crawler->logFilteredData_->getNbMarks(); }
 
     void trackField( const QString& pattern ) { crawler->trackField( pattern ); }
+
+    void setHistoryEntries( const QStringList& entries )
+    {
+        const QSignalBlocker blocker( crawler->searchLineEdit_ );
+        crawler->searchLineEdit_->clear();
+        crawler->searchLineEdit_->addItems( entries );
+        crawler->searchLineEdit_->setCurrentIndex( 0 );
+    }
+    void browseHistory( Qt::Key key ) { QTest::keyClick( crawler->searchLineEdit_, key ); }
+    QString draftText() { return crawler->searchLineEdit_->currentText(); }
+    void editDraft( const QString& text )
+    {
+        auto* edit = crawler->searchLineEdit_->lineEdit();
+        edit->selectAll();
+        QTest::keyClick( edit, Qt::Key_Backspace );
+        QTest::keyClicks( edit, text );
+    }
 
     bool markersStayInGutter()
     {
@@ -835,5 +854,65 @@ TEST_CASE( "Field tracking searches immediately without matching other numeric f
     REQUIRE( visitor.filteredContains( "frameNumber: 1234" ) );
     REQUIRE_FALSE( visitor.filteredContains( "requestId=1234" ) );
     REQUIRE_FALSE( visitor.filteredContains( "frameNumber=12345" ) );
+}
+
+TEST_CASE( "Browsing and editing draft searches preserve applied preset buttons and colors", "[ui][presets][history]" )
+{
+    QTemporaryFile file{ "history_preset_XXXXXX" };
+    REQUIRE( generateDataFiles( file ) );
+    Session session;
+    session.savedSearches().clear();
+    CrawlerWidgetVisitor visitor;
+    visitor.crawler.reset( static_cast<CrawlerWidget*>(
+        session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
+    REQUIRE( waitUiState( [&] { return visitor.isLoadingFinished(); } ) );
+    visitor.crawler->resize( 1400, 900 );
+    visitor.crawler->show();
+    auto* panel = visitor.crawler->findChild<PredefinedFiltersButtonPanel*>();
+    REQUIRE( panel );
+    const QColor presetColor( "#dbeafe" );
+    panel->setFilters( { { "Line ten", "000010", false, presetColor,
+        PredefinedFilter::HighlightMode::Keywords } } );
+    QToolButton* preset = nullptr;
+    for ( auto* button : panel->findChildren<QToolButton*>() ) {
+        if ( button->text() == "Line ten" ) preset = button;
+    }
+    REQUIRE( preset );
+    preset->click();
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines() == 1_lcount; } ) );
+    REQUIRE( visitor.filteredContains( "000010" ) );
+    REQUIRE( waitUiState( [&] { return visitor.bothViewsHaveHighlight( presetColor ); } ) );
+    visitor.setHistoryEntries( { "000010", "000020" } );
+    visitor.browseHistory( Qt::Key_Down );
+    REQUIRE( visitor.draftText() == "000020" );
+    REQUIRE( preset->isChecked() );
+    REQUIRE( panel->activeFilters().size() == 1 );
+    REQUIRE( visitor.filteredContains( "000010" ) );
+    REQUIRE_FALSE( visitor.filteredContains( "000020" ) );
+    REQUIRE( visitor.bothViewsHaveHighlight( presetColor ) );
+    visitor.browseHistory( Qt::Key_Up );
+    REQUIRE( visitor.draftText() == "000010" );
+    REQUIRE( preset->isChecked() );
+    visitor.editDraft( "000030" );
+    REQUIRE( preset->isChecked() );
+    REQUIRE( visitor.filteredContains( "000010" ) );
+    REQUIRE( visitor.bothViewsHaveHighlight( presetColor ) );
+    // A checkpoint must not execute an unsubmitted history/draft query on restart.
+    const auto checkpoint = QJsonDocument::fromJson( visitor.crawler->context()->toString().toUtf8() ).object();
+    REQUIRE( checkpoint.value( "ST" ).toString() == "000010" );
+    REQUIRE( checkpoint.value( "PF" ).toArray().size() == 1 );
+    visitor.runSearch();
+    REQUIRE( waitUiState( [&] { return visitor.filteredContains( "000030" ); } ) );
+    REQUIRE_FALSE( preset->isChecked() );
+    REQUIRE( panel->activeFilters().isEmpty() );
+    REQUIRE( waitUiState( [&] { return visitor.filteredColorPixels( presetColor ) == 0; } ) );
+    preset->click();
+    REQUIRE( waitUiState( [&] { return visitor.filteredContains( "000010" ); } ) );
+    REQUIRE( preset->isChecked() );
+    visitor.editDraft( {} );
+    REQUIRE( preset->isChecked() );
+    visitor.runSearch();
+    REQUIRE( waitUiState( [&] { return visitor.getLogFilteredNbLines() == 0_lcount; } ) );
+    REQUIRE( panel->activeFilters().isEmpty() );
 }
 

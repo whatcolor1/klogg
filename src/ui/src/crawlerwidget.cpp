@@ -366,8 +366,9 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
     logMainView_->followSet( context.followFile() && config.anyFileWatchEnabled() );
 
     searchLineEdit_->setEditText( context.searchText() );
+    appliedSearchText_ = context.searchText();
     predefinedFiltersPanel_->setActiveFilters( context.activeFilters() );
-    updatePredefinedFiltersWidget();
+    updatePredefinedFiltersWidget( appliedSearchText_ );
     restoredSearchPending_ = !context.searchText().isEmpty();
 
     const auto savedMarks = context.marks();
@@ -380,7 +381,7 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
     auto context = std::make_shared<const CrawlerWidgetContext>(
         sizes(), ( !matchCaseButton_->isChecked() ), searchRefreshButton_->isChecked(),
         logMainView_->isFollowEnabled(), useRegexpButton_->isChecked(), inverseButton_->isChecked(),
-        booleanButton_->isChecked(), logFilteredData_->getMarks(), searchLineEdit_->currentText(),
+        booleanButton_->isChecked(), logFilteredData_->getMarks(), appliedSearchText_,
         predefinedFiltersPanel_->activeFilters() );
 
     return static_cast<std::shared_ptr<const ViewContextInterface>>( context );
@@ -436,12 +437,11 @@ void CrawlerWidget::updatePredefinedFilterHighlights() const
     filteredView_->setPredefinedFilterHighlights( active, matchCaseButton_->isChecked() );
 }
 
-void CrawlerWidget::updatePredefinedFiltersWidget()
+void CrawlerWidget::updatePredefinedFiltersWidget( const QString& text )
 {
-    predefinedFilters_->updateSearchPattern( searchLineEdit_->currentText(),
+    predefinedFilters_->updateSearchPattern( text,
                                              booleanButton_->isChecked() );
     QList<PredefinedFilter> active;
-    const QString text = searchLineEdit_->currentText();
     QString activePattern;
     for ( const auto& f : predefinedFiltersPanel_->activeFilters() ) {
         combinePatterns( activePattern, escapeSearchPattern( f.pattern, f.useRegex ) );
@@ -755,7 +755,7 @@ void CrawlerWidget::loadingFinishedHandler( LoadingStatus status )
         searchEndLine_ = LineNumber( logData_->getNbLine().get() );
         if ( searchState_.isFileTruncated() )
             // We need to restart the search
-            replaceCurrentSearch( searchLineEdit_->currentText() );
+            replaceCurrentSearch( appliedSearchText_ );
         else
             logFilteredData_->updateSearch( searchStartLine_, searchEndLine_ );
     }
@@ -874,7 +874,6 @@ void CrawlerWidget::useRegexpChangeHandler( bool )
 void CrawlerWidget::searchTextChangeHandler( QString )
 {
     resetStateOnSearchPatternChanges();
-    updatePredefinedFiltersWidget();
 }
 
 void CrawlerWidget::changeFilteredViewVisibility( int index )
@@ -986,7 +985,6 @@ void CrawlerWidget::replaceSearch( const QString& searchString )
 void CrawlerWidget::setSearchPattern( const QString& searchPattern )
 {
     searchLineEdit_->setEditText( searchPattern );
-    updatePredefinedFiltersWidget();
     // Set the focus to lineEdit so that the user can press 'Return' immediately
     searchLineEdit_->lineEdit()->setFocus();
 
@@ -1258,7 +1256,7 @@ void CrawlerWidget::setup()
              &CrawlerWidget::searchTextChangeHandler );
 
     connect( searchLineEdit_, QOverload<int>::of( &QComboBox::currentIndexChanged ), this,
-             [ this ]( auto ) { updatePredefinedFiltersWidget(); } );
+             [ this ]( auto ) { resetStateOnSearchPatternChanges(); } );
 
     connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::editFiltersRequested, this,
              [this] { Q_EMIT saveCurrentSearchAsPredefinedFilter( QString{} ); } );
@@ -1379,7 +1377,7 @@ void CrawlerWidget::setup()
     if ( defaultEncodingMib >= 0 ) {
         encodingMib_ = defaultEncodingMib;
     }
-    updatePredefinedFiltersWidget();
+    updatePredefinedFiltersWidget( appliedSearchText_ );
 }
 
 void CrawlerWidget::changeFilteredView( int tabIndex )
@@ -1646,6 +1644,8 @@ void CrawlerWidget::loadIcons()
 void CrawlerWidget::replaceCurrentSearch( const QString& searchText )
 {
     LOG_INFO << "replacing current search with " << searchText;
+    appliedSearchText_ = searchText;
+    updatePredefinedFiltersWidget( appliedSearchText_ );
     // Interrupt the search if it's ongoing
     logFilteredData_->interruptSearch();
 
