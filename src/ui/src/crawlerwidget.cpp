@@ -75,6 +75,9 @@
 #include "infoline.h"
 #include "quickfindpattern.h"
 #include "savedsearches.h"
+#include "analysisstorage.h"
+#include <QMessageBox>
+#include <QSignalBlocker>
 #include "shortcuts.h"
 
 static constexpr char AnsiColorSequenceRegex[] = "\\x1B\\[([0-9]{1,4}((;|:)[0-9]{1,3})*)?[mK]";
@@ -90,8 +93,11 @@ public:
     // Construct from the value passsed
     CrawlerWidgetContext( QList<int> sizes, bool ignoreCase, bool autoRefresh, bool followFile,
                           bool useRegexp, bool inverseRegexp, bool useBooleanCombination,
-                          QList<LineNumber> markedLines )
-        : sizes_( sizes )
+                          QList<LineNumber> markedLines, const QString& searchText,
+                          const QList<PredefinedFilter>& activeFilters )
+        : searchText_( searchText )
+        , activeFilters_( activeFilters )
+        , sizes_( sizes )
         , ignoreCase_( ignoreCase )
         , autoRefresh_( autoRefresh )
         , followFile_( followFile )
@@ -107,6 +113,9 @@ public:
     QString toString() const override;
 
     // Access the Qt sizes array for the QSplitter
+    QString searchText() const { return searchText_; }
+    QList<PredefinedFilter> activeFilters() const { return activeFilters_; }
+
     QList<int> sizes() const
     {
         return sizes_;
@@ -147,14 +156,16 @@ private:
     void loadFromJson( const QString& json );
 
 private:
+    QString searchText_;
+    QList<PredefinedFilter> activeFilters_;
     QList<int> sizes_;
 
-    bool ignoreCase_;
-    bool autoRefresh_;
-    bool followFile_;
-    bool useRegexp_;
-    bool inverseRegexp_;
-    bool useBooleanCombination_;
+    bool ignoreCase_ = false;
+    bool autoRefresh_ = false;
+    bool followFile_ = false;
+    bool useRegexp_ = false;
+    bool inverseRegexp_ = false;
+    bool useBooleanCombination_ = false;
 
     QList<LineNumber::UnderlyingType> marks_;
 };
@@ -212,6 +223,9 @@ bool CrawlerWidget::isTextWrapEnabled() const
 void CrawlerWidget::reloadPredefinedFilters() const
 {
     predefinedFilters_->populatePredefinedFilters();
+    predefinedFiltersPanel_->setFilters( PredefinedFiltersCollection::getSynced().getFilters() );
+    predefinedFilters_->setSelectedFilters( predefinedFiltersPanel_->activeFilters() );
+    updatePredefinedFilterHighlights();
 }
 
 QString CrawlerWidget::encodingText() const
@@ -353,6 +367,12 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
     const auto& config = Configuration::get();
     logMainView_->followSet( context.followFile() && config.anyFileWatchEnabled() );
 
+    searchLineEdit_->setEditText( context.searchText() );
+    appliedSearchText_ = context.searchText();
+    predefinedFiltersPanel_->setActiveFilters( context.activeFilters() );
+    updatePredefinedFiltersWidget( appliedSearchText_ );
+    restoredSearchPending_ = !context.searchText().isEmpty();
+
     const auto savedMarks = context.marks();
     std::transform( savedMarks.cbegin(), savedMarks.cend(), std::back_inserter( savedMarkedLines_ ),
                     []( const auto& l ) { return LineNumber( l ); } );
@@ -363,7 +383,8 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
     auto context = std::make_shared<const CrawlerWidgetContext>(
         sizes(), ( !matchCaseButton_->isChecked() ), searchRefreshButton_->isChecked(),
         logMainView_->isFollowEnabled(), useRegexpButton_->isChecked(), inverseButton_->isChecked(),
-        booleanButton_->isChecked(), logFilteredData_->getMarks() );
+        booleanButton_->isChecked(), logFilteredData_->getMarks(), appliedSearchText_,
+        predefinedFiltersPanel_->activeFilters() );
 
     return static_cast<std::shared_ptr<const ViewContextInterface>>( context );
 }
@@ -411,10 +432,37 @@ void CrawlerWidget::startNewSearch()
     replaceCurrentSearch( searchLineEdit_->currentText() );
 }
 
-void CrawlerWidget::updatePredefinedFiltersWidget()
+void CrawlerWidget::updatePredefinedFilterHighlights() const
 {
-    predefinedFilters_->updateSearchPattern( searchLineEdit_->currentText(),
+    const auto active = predefinedFiltersPanel_->activeFilters();
+    logMainView_->setPredefinedFilterHighlights( active, matchCaseButton_->isChecked() );
+    filteredView_->setPredefinedFilterHighlights( active, matchCaseButton_->isChecked() );
+}
+
+void CrawlerWidget::updatePredefinedFiltersWidget( const QString& text )
+{
+    predefinedFilters_->updateSearchPattern( text,
                                              booleanButton_->isChecked() );
+    QList<PredefinedFilter> active;
+    QString activePattern;
+    for ( const auto& f : predefinedFiltersPanel_->activeFilters() ) {
+        combinePatterns( activePattern, escapeSearchPattern( f.pattern, f.useRegex ) );
+    }
+    if ( activePattern == text ) {
+        predefinedFilters_->setSelectedFilters( predefinedFiltersPanel_->activeFilters() );
+        updatePredefinedFilterHighlights();
+        return;
+    }
+    const QStringList parts = booleanButton_->isChecked()
+        ? text.split( QStringLiteral( " or " ) ) : text.split( QLatin1Char( '|' ) );
+    for ( const auto& filter : PredefinedFiltersCollection::get().getFilters() ) {
+        QString pattern;
+        combinePatterns( pattern, escapeSearchPattern( filter.pattern, filter.useRegex ) );
+        if ( text == pattern || parts.contains( pattern ) ) active.append( filter );
+    }
+    predefinedFiltersPanel_->setActiveFilters( active );
+    predefinedFilters_->setSelectedFilters( active );
+    updatePredefinedFilterHighlights();
 }
 
 void CrawlerWidget::stopSearch()
@@ -469,6 +517,79 @@ void CrawlerWidget::saveAsPredefinedFilter()
     const auto currentText = searchLineEdit_->currentText();
 
     Q_EMIT saveCurrentSearchAsPredefinedFilter( currentText );
+}
+
+AnalysisStorage::Query CrawlerWidget::currentQuery( const QString& name ) const
+{
+    return { name, searchLineEdit_->currentText(), matchCaseButton_->isChecked(),
+             useRegexpButton_->isChecked(), inverseButton_->isChecked(),
+             booleanButton_->isChecked(), searchRefreshButton_->isChecked() };
+}
+
+bool CrawlerWidget::applyQuery( const AnalysisStorage::Query& query, QString* error )
+{
+    RegularExpression expression( RegularExpressionPattern( query.expression, query.matchCase,
+        query.inverse, query.logical, !query.regex ) );
+    if ( query.expression.isEmpty() || !expression.isValid() ) {
+        if ( error ) *error = expression.errorString();
+        return false;
+    }
+    // Set all options before execution. Preserve any retained result views.
+    matchCaseButton_->setChecked( query.matchCase );
+    useRegexpButton_->setChecked( query.regex );
+    inverseButton_->setChecked( query.inverse );
+    booleanButton_->setChecked( query.logical );
+    searchRefreshButton_->setChecked( query.autoRefresh );
+    searchLineEdit_->setEditText( query.expression );
+    startNewSearch();
+    return true;
+}
+
+void CrawlerWidget::showQueryMenu()
+{
+    AnalysisStorage::QueryStore store( QDir( AnalysisStorage::directory() ).filePath( "queries.json" ) );
+    QList<AnalysisStorage::Query> queries;
+    QString error;
+    if ( !store.load( &queries, &error ) ) {
+        QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot read query plans. The original file was preserved.\n%1" ).arg( error ) );
+        return;
+    }
+    QMenu menu( this );
+    auto* save = menu.addAction( tr( "Save current query..." ) );
+    save->setEnabled( !searchLineEdit_->currentText().isEmpty() );
+    connect( save, &QAction::triggered, this, [ &, this ] {
+        auto query = currentQuery( {} );
+        RegularExpression expression( RegularExpressionPattern( query.expression, query.matchCase, query.inverse, query.logical, !query.regex ) );
+        if ( !expression.isValid() ) {
+            QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot save an invalid query.\n%1" ).arg( expression.errorString() ) );
+            return;
+        }
+        bool ok = false;
+        query.name = QInputDialog::getText( this, tr( "Save query plan" ), tr( "Name:" ), QLineEdit::Normal, {}, &ok ).trimmed();
+        if ( !ok || query.name.isEmpty() ) return;
+        for ( const auto& other : queries ) if ( other.name == query.name ) {
+            if ( QMessageBox::question( this, tr( "Query plans" ), tr( "Replace query plan \"%1\"?" ).arg( query.name ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) != QMessageBox::Yes ) return;
+        }
+        if ( !store.update( query, false, &error ) ) QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot save query plans.\n%1" ).arg( error ) );
+    } );
+    menu.addSeparator();
+    if ( queries.isEmpty() ) menu.addAction( tr( "No saved query plans" ) )->setEnabled( false );
+    auto* removeMenu = menu.addMenu( tr( "Delete query plan" ) );
+    removeMenu->setEnabled( !queries.isEmpty() );
+    for ( const auto& query : queries ) {
+        auto* action = menu.addAction( query.name );
+        action->setToolTip( query.expression );
+        connect( action, &QAction::triggered, this, [ this, query ] {
+            QString failure;
+            if ( !applyQuery( query, &failure ) ) QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot run this query.\n%1" ).arg( failure ) );
+        } );
+        auto* remove = removeMenu->addAction( query.name );
+        connect( remove, &QAction::triggered, this, [ &, query ] {
+            if ( QMessageBox::question( this, tr( "Query plans" ), tr( "Delete query plan \"%1\"?" ).arg( query.name ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) == QMessageBox::Yes
+                 && !store.update( query, true, &error ) ) QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot save query plans.\n%1" ).arg( error ) );
+        } );
+    }
+    menu.exec( QCursor::pos() );
 }
 
 void CrawlerWidget::showSearchContextMenu()
@@ -709,7 +830,7 @@ void CrawlerWidget::loadingFinishedHandler( LoadingStatus status )
         searchEndLine_ = LineNumber( logData_->getNbLine().get() );
         if ( searchState_.isFileTruncated() )
             // We need to restart the search
-            replaceCurrentSearch( searchLineEdit_->currentText() );
+            replaceCurrentSearch( appliedSearchText_ );
         else
             logFilteredData_->updateSearch( searchStartLine_, searchEndLine_ );
     }
@@ -729,6 +850,10 @@ void CrawlerWidget::loadingFinishedHandler( LoadingStatus status )
             logFilteredData_->addMark( m );
         }
         logMainView_->setFocus();
+        if ( restoredSearchPending_ ) {
+            restoredSearchPending_ = false;
+            startNewSearch();
+        }
     }
 
     loadingInProgress_ = false;
@@ -824,7 +949,6 @@ void CrawlerWidget::useRegexpChangeHandler( bool )
 void CrawlerWidget::searchTextChangeHandler( QString )
 {
     resetStateOnSearchPatternChanges();
-    updatePredefinedFiltersWidget();
 }
 
 void CrawlerWidget::changeFilteredViewVisibility( int index )
@@ -842,11 +966,19 @@ void CrawlerWidget::changeFilteredViewVisibility( int index )
 
 void CrawlerWidget::setSearchPatternFromPredefinedFilters( const QList<PredefinedFilter>& filters )
 {
+    // Canonical regex mode supports mixed literal/regex presets and OR combinations.
+    if ( !filters.isEmpty() ) useRegexpButton_->setChecked( true );
     QString searchPattern;
     for ( const auto& filter : filters ) {
         combinePatterns( searchPattern, escapeSearchPattern( filter.pattern, filter.useRegex ) );
     }
+    applyingPredefinedFilter_ = true;
     setSearchPattern( searchPattern );
+    applyingPredefinedFilter_ = false;
+    predefinedFiltersPanel_->setActiveFilters( filters );
+    predefinedFilters_->setSelectedFilters( filters );
+    updatePredefinedFilterHighlights();
+    startNewSearch();
 }
 
 QString CrawlerWidget::escapeSearchPattern( const QString& pattern, bool isRegex ) const
@@ -906,6 +1038,20 @@ void CrawlerWidget::excludeFromSearch( const QString& searchString )
     setSearchPattern( currentPattern );
 }
 
+void CrawlerWidget::trackField( const QString& regex )
+{
+    applyingPredefinedFilter_ = true;
+    booleanButton_->setChecked( false );
+    inverseButton_->setChecked( false );
+    useRegexpButton_->setChecked( true );
+    setSearchPattern( regex );
+    applyingPredefinedFilter_ = false;
+    predefinedFiltersPanel_->setActiveFilters( {} );
+    predefinedFilters_->setSelectedFilters( {} );
+    updatePredefinedFilterHighlights();
+    startNewSearch();
+}
+
 void CrawlerWidget::replaceSearch( const QString& searchString )
 {
     setSearchPattern( escapeSearchPattern( searchString ) );
@@ -914,11 +1060,10 @@ void CrawlerWidget::replaceSearch( const QString& searchString )
 void CrawlerWidget::setSearchPattern( const QString& searchPattern )
 {
     searchLineEdit_->setEditText( searchPattern );
-    updatePredefinedFiltersWidget();
     // Set the focus to lineEdit so that the user can press 'Return' immediately
     searchLineEdit_->lineEdit()->setFocus();
 
-    if ( Configuration::get().autoRunSearchOnPatternChange() ) {
+    if ( !applyingPredefinedFilter_ && Configuration::get().autoRunSearchOnPatternChange() ) {
         dispatchToMainThread( [ this ] { startNewSearch(); } );
     }
 }
@@ -1123,6 +1268,8 @@ void CrawlerWidget::setup()
     stopButton_->setContentsMargins( 2, 2, 2, 2 );
 
     predefinedFilters_ = new PredefinedFiltersComboBox( this );
+    predefinedFiltersPanel_ = new PredefinedFiltersButtonPanel( this );
+    predefinedFiltersPanel_->setFilters( PredefinedFiltersCollection::getSynced().getFilters() );
 
     auto* searchLineLayout = new QHBoxLayout;
     searchLineLayout->setContentsMargins( 2, 2, 2, 2 );
@@ -1134,6 +1281,13 @@ void CrawlerWidget::setup()
     searchLineLayout->addWidget( booleanButton_ );
     searchLineLayout->addWidget( searchRefreshButton_ );
     searchLineLayout->addWidget( predefinedFilters_ );
+    auto* queryButton = new QToolButton( this );
+    queryButton->setObjectName( "savedQueryButton" );
+    queryButton->setText( tr( "Queries" ) );
+    queryButton->setToolTip( tr( "Save or run a complete query with its search options" ) );
+    queryButton->setAutoRaise( true );
+    connect( queryButton, &QToolButton::clicked, this, &CrawlerWidget::showQueryMenu );
+    searchLineLayout->addWidget( queryButton );
     searchLineLayout->addWidget( searchLineEdit_ );
     searchLineLayout->addWidget( clearButton_ );
     searchLineLayout->addWidget( searchButton_ );
@@ -1151,6 +1305,7 @@ void CrawlerWidget::setup()
     auto* bottomMainLayout = new QVBoxLayout;
     bottomMainLayout->addLayout( searchLineLayout );
     bottomMainLayout->addWidget( tabbedFilteredView_ );
+    bottomMainLayout->addWidget( predefinedFiltersPanel_ );
     bottomMainLayout->setContentsMargins( 2, 2, 2, 2 );
     bottomWindow->setLayout( bottomMainLayout );
 
@@ -1183,7 +1338,12 @@ void CrawlerWidget::setup()
              &CrawlerWidget::searchTextChangeHandler );
 
     connect( searchLineEdit_, QOverload<int>::of( &QComboBox::currentIndexChanged ), this,
-             [ this ]( auto ) { updatePredefinedFiltersWidget(); } );
+             [ this ]( auto ) { resetStateOnSearchPatternChanges(); } );
+
+    connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::editFiltersRequested, this,
+             [this] { Q_EMIT saveCurrentSearchAsPredefinedFilter( QString{} ); } );
+    connect( predefinedFiltersPanel_, &PredefinedFiltersButtonPanel::filtersChanged, this,
+             &CrawlerWidget::setSearchPatternFromPredefinedFilters );
 
     connect( predefinedFilters_, &PredefinedFiltersComboBox::filterChanged, this,
              &CrawlerWidget::setSearchPatternFromPredefinedFilters );
@@ -1208,6 +1368,8 @@ void CrawlerWidget::setup()
 
     connect( logMainView_, &LogMainView::newSelection, this,
              &CrawlerWidget::updateLineNumberHandler );
+
+    connect( logMainView_, &AbstractLogView::trackFieldRequested, this, &CrawlerWidget::trackField );
 
     connect( logMainView_, &LogMainView::markLines, this, &CrawlerWidget::markLinesFromMain );
 
@@ -1297,7 +1459,7 @@ void CrawlerWidget::setup()
     if ( defaultEncodingMib >= 0 ) {
         encodingMib_ = defaultEncodingMib;
     }
-    updatePredefinedFiltersWidget();
+    updatePredefinedFiltersWidget( appliedSearchText_ );
 }
 
 void CrawlerWidget::changeFilteredView( int tabIndex )
@@ -1314,6 +1476,7 @@ void CrawlerWidget::changeFilteredView( int tabIndex )
 
         logMainView_->useNewFiltering( logFilteredData_.get() );
         changeFilteredViewVisibility( visibilityBox_->currentIndex() );
+        updatePredefinedFilterHighlights();
     }
 }
 
@@ -1367,6 +1530,8 @@ void CrawlerWidget::connectAllFilteredViewSlots( FilteredView* view )
     connect( view, &FilteredView::newSelection, view, [ view ]( auto ) { view->update(); } );
 
     connect( view, &FilteredView::newSelection, this, &CrawlerWidget::jumpToMatchingLine );
+
+    connect( view, &AbstractLogView::trackFieldRequested, this, &CrawlerWidget::trackField );
 
     connect( view, &FilteredView::markLines, this, &CrawlerWidget::markLinesFromFiltered );
 
@@ -1561,6 +1726,8 @@ void CrawlerWidget::loadIcons()
 void CrawlerWidget::replaceCurrentSearch( const QString& searchText )
 {
     LOG_INFO << "replacing current search with " << searchText;
+    appliedSearchText_ = searchText;
+    updatePredefinedFiltersWidget( appliedSearchText_ );
     // Interrupt the search if it's ongoing
     logFilteredData_->interruptSearch();
 
@@ -1611,6 +1778,7 @@ void CrawlerWidget::replaceCurrentSearch( const QString& searchText )
             searchInfoLine_->hide();
             logMainView_->setSearchPattern( regexpPattern );
             filteredView_->setSearchPattern( regexpPattern );
+            updatePredefinedFilterHighlights();
         }
         else {
             // The regexp is wrong
@@ -1646,6 +1814,8 @@ void CrawlerWidget::replaceCurrentSearch( const QString& searchText )
 // called when the SavedSearch has been changed.
 void CrawlerWidget::updateSearchCombo()
 {
+    // Rebuilding history must not clear the active preset through transient empty text.
+    const QSignalBlocker blocker( searchLineEdit_ );
     const QString text = searchLineEdit_->lineEdit()->text();
     searchLineEdit_->clear();
 
@@ -1869,7 +2039,7 @@ void CrawlerWidgetContext::loadFromString( const QString& string )
 
 void CrawlerWidgetContext::loadFromJson( const QString& json )
 {
-    const auto properties = QJsonDocument::fromJson( json.toLatin1() ).toVariant().toMap();
+    const auto properties = QJsonDocument::fromJson( json.toUtf8() ).toVariant().toMap();
 
     if ( properties.contains( "S" ) ) {
         const auto sizes = properties.value( "S" ).toList();
@@ -1878,6 +2048,12 @@ void CrawlerWidgetContext::loadFromJson( const QString& json )
         }
     }
 
+    searchText_ = properties.value( "ST" ).toString();
+    for ( const auto& value : properties.value( "PF" ).toList() ) {
+        const auto f = value.toMap();
+        activeFilters_.append( { f.value( "name" ).toString(), f.value( "pattern" ).toString(),
+                                 f.value( "regex" ).toBool() } );
+    }
     ignoreCase_ = properties.value( "IC" ).toBool();
     autoRefresh_ = properties.value( "AR" ).toBool();
     followFile_ = properties.value( "FF" ).toBool();
@@ -1922,6 +2098,13 @@ QString CrawlerWidgetContext::toString() const
 
     QVariantMap properies;
 
+    properies[ "ST" ] = searchText_;
+    QVariantList activeFilters;
+    for ( const auto& f : activeFilters_ ) {
+        activeFilters.append( QVariantMap{ { "name", f.name }, { "pattern", f.pattern },
+                                           { "regex", f.useRegex } } );
+    }
+    properies[ "PF" ] = activeFilters;
     properies[ "S" ] = toVariantList( sizes_ );
     properies[ "IC" ] = ignoreCase_;
     properies[ "AR" ] = autoRefresh_;
@@ -1933,3 +2116,4 @@ QString CrawlerWidgetContext::toString() const
 
     return QJsonDocument::fromVariant( properies ).toJson( QJsonDocument::Compact );
 }
+

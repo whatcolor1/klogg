@@ -9,6 +9,8 @@ add_library(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/highlighterset.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/highlightersmenu.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/highlightedmatch.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfiltersbuttonpanel.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/predefinedfiltersbuttonpanel.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfilters.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfilterscombobox.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/predefinedfiltersdialog.h
@@ -35,6 +37,7 @@ add_library(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/tabbedcrawlerwidget.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/viewinterface.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/viewtools.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/analysisstorage.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/scratchpad.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/tabbedscratchpad.h
   ${CMAKE_CURRENT_SOURCE_DIR}/include/encodings.h

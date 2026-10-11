@@ -59,6 +59,7 @@
 #include "uuid.h"
 
 #include "highlighterset.h"
+#include "readablecolors.h"
 
 QRegularExpression::PatternOptions getPatternOptions( bool ignoreCase )
 {
@@ -592,31 +593,29 @@ void HighlighterSetCollection::retrieveFromStorage( QSettings& settings )
     }
 
     QList<QuickHighlighter> defaultLabels;
-    defaultLabels.append( { QApplication::tr( "Color label 1" ),
-                            { QColor{ "#001e80" }, QColor{ "#a1b7ff" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 2" ),
-                            { QColor{ "#80005D" }, QColor{ "#ffa1c6" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 3" ),
-                            { QColor{ "#0f8000" }, QColor{ "#acffa1" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 4" ),
-                            { QColor{ "#806000" }, QColor{ "#ffe8a1" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 5" ),
-                            { QColor{ "#420080" }, QColor{ "#d2a1ff" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 6" ),
-                            { QColor{ "#007f80" }, QColor{ "#a1feff" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 7" ),
-                            { QColor{ "#004e80" }, QColor{ "#a1dbff" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 8" ),
-                            { QColor{ "#120080" }, QColor{ "#a29ccf" } },
-                            true } );
-    defaultLabels.append( { QApplication::tr( "Color label 9" ), { QColor{}, Qt::gray }, true } );
+    const auto& palette = readableColorPalette();
+    const std::array<const char*, 9> oldBackgrounds = {{
+        "#a1b7ff", "#ffa1c6", "#acffa1", "#ffe8a1", "#d2a1ff",
+        "#a1feff", "#a1dbff", "#a29ccf", "#a0a0a4"
+    }};
+    const std::array<const char*, 9> oldForegrounds = {{
+        "#001e80", "#80005d", "#0f8000", "#806000", "#420080",
+        "#007f80", "#004e80", "#120080", ""
+    }};
+    for ( size_t i = 0; i < palette.size(); ++i ) {
+        const QColor background( palette[i] );
+        const auto foreground = readableForeground( background );
+        defaultLabels.append( { QApplication::tr( "Color label %1" ).arg( static_cast<int>( i + 1 ) ),
+                               { foreground, background }, true } );
+        // Migrate only untouched legacy default pairs; keep customized colors.
+        if ( i < oldBackgrounds.size() && static_cast<int>( i ) < quickHighlighters_.size() ) {
+            auto& label = quickHighlighters_[ static_cast<int>( i ) ];
+            if ( label.color.backColor == QColor( oldBackgrounds[i] )
+                 && label.color.foreColor == QColor( oldForegrounds[i] ) ) {
+                label.color = { foreground, background };
+            }
+        }
+    }
 
     if ( quickHighlighters_.size() < defaultLabels.size() ) {
         LOG_WARNING << "Got " << quickHighlighters_.size() << " quick highlighters";

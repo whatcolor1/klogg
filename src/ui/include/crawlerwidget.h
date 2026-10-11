@@ -63,9 +63,11 @@
 #include "logmainview.h"
 #include "overview.h"
 #include "predefinedfilterscombobox.h"
+#include "predefinedfiltersbuttonpanel.h"
 #include "signalmux.h"
 #include "viewinterface.h"
 
+namespace AnalysisStorage { struct Query; }
 class InfoLine;
 class QuickFindPattern;
 class SavedSearches;
@@ -111,6 +113,9 @@ class CrawlerWidget : public QSplitter,
     bool isTextWrapEnabled() const;
 
     void registerShortcuts();
+    AnalysisStorage::Query currentQuery( const QString& name ) const;
+    bool applyQuery( const AnalysisStorage::Query& query, QString* error = nullptr );
+    void showQueryMenu();
 
   public Q_SLOTS:
     // Stop the asynchoronous loading of the file if one is in progress
@@ -238,6 +243,7 @@ class CrawlerWidget : public QSplitter,
 
     // Called when the user replaces the search with the selection string
     void replaceSearch( const QString& string );
+    void trackField( const QString& regex );
 
     // Called when the user excludes selection string from search
     // works only in boolean combination mode
@@ -332,7 +338,7 @@ class CrawlerWidget : public QSplitter,
     void changeDataStatus( DataStatus status );
     void updateEncoding();
     void changeTopViewSize( int32_t delta );
-    void updatePredefinedFiltersWidget();
+    void updatePredefinedFiltersWidget( const QString& appliedText );
 
     // Reload predefined filters after changing settings
     void reloadPredefinedFilters() const;
@@ -377,6 +383,12 @@ class CrawlerWidget : public QSplitter,
     QStandardItemModel* visibilityModel_;
 
     PredefinedFiltersComboBox* predefinedFilters_;
+    void updatePredefinedFilterHighlights() const;
+    PredefinedFiltersButtonPanel* predefinedFiltersPanel_;
+    bool restoredSearchPending_ = false;
+    bool applyingPredefinedFilter_ = false;
+    // The editable search/history text is a draft until a search is executed.
+    QString appliedSearchText_;
 
     QComboBox* searchLineEdit_;
     QMenu* searchLineContextMenu_;
@@ -434,3 +446,4 @@ class CrawlerWidget : public QSplitter,
 };
 
 #endif
+

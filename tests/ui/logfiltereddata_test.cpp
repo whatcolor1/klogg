@@ -20,6 +20,7 @@
 #include <catch2/catch.hpp>
 
 #include <QSignalSpy>
+#include <QElapsedTimer>
 #include <QTemporaryFile>
 #include <QTest>
 #include <QTimer>
@@ -58,15 +59,24 @@ void runSearch( LogFilteredData* filtered_data, const QString& regexp,
                 SafeQSignalSpy& searchProgressSpy )
 {
 
-    QTimer::singleShot(
-        50, [ & ]() { filtered_data->runSearch( RegularExpressionPattern( regexp ) ); } );
+    searchProgressSpy.clear();
+    filtered_data->runSearch( RegularExpressionPattern( regexp ) );
 
-    int progress = 0;
-    do {
-        REQUIRE( searchProgressSpy.wait() );
-        QList<QVariant> progressArgs = searchProgressSpy.last();
-        progress = progressArgs.at( 1 ).toInt();
-    } while ( progress < 100 );
+    // Check already-recorded completion, then run Qt's nested event loop for
+    // each notification. A first progress signal does not mean completion.
+    const auto completed = [ & ]() {
+        return !searchProgressSpy.isEmpty()
+            && searchProgressSpy.last().at( 1 ).toInt() >= 100;
+    };
+    QElapsedTimer timer;
+    timer.start();
+    while ( !completed() ) {
+        const auto remaining = 10000 - timer.elapsed();
+        if ( remaining <= 0 || !searchProgressSpy.wait( static_cast<int>( remaining ) ) ) break;
+    }
+    const int lastProgress = searchProgressSpy.isEmpty() ? -1 : searchProgressSpy.last().at( 1 ).toInt();
+    CAPTURE( searchProgressSpy.count(), lastProgress, filtered_data->getNbMatches().get() );
+    REQUIRE( completed() );
 }
 
 } // namespace
@@ -223,6 +233,7 @@ SCENARIO( "search for regex", "[logdata]" )
         WHEN( "Searched for regex" )
         {
             const auto threadPoolSize = GENERATE( 0, 1, 2 );
+            CAPTURE( threadPoolSize );
 
             auto& config = Configuration::getSynced();
 

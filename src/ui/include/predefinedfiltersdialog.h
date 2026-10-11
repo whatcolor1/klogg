@@ -46,6 +46,8 @@
 #include "predefinedfiltersdialog.h"
 #include "ui_predefinedfiltersdialog.h"
 
+class QComboBox;
+
 class PredefinedFiltersDialog : public QDialog, public Ui::PredefinedFiltersDialog {
     Q_OBJECT
 
@@ -73,6 +75,8 @@ class PredefinedFiltersDialog : public QDialog, public Ui::PredefinedFiltersDial
 
   private:
     void addFilterRow( const QString& newFilter );
+    void setFilterRow( int row, const PredefinedFilter& filter );
+    PredefinedFilter readFilterRow( int row ) const;
     void populateFiltersTable( const PredefinedFiltersCollection::Collection& filters );
 
     void swapFilters( int currentRow, int newRow, int column );
@@ -82,6 +86,7 @@ class PredefinedFiltersDialog : public QDialog, public Ui::PredefinedFiltersDial
 
     void updateButtons();
     void updateUpDownButtons( int currentRow );
+    QComboBox* colorScheme_ = nullptr;
 };
 
 #endif

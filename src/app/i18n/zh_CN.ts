@@ -22,18 +22,18 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="573"/>
         <source>Copy this line with line number</source>
-        <translation type="unfinished">拷贝当前行并附加行号</translation>
+        <translation>拷贝当前行并附加行号</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="585"/>
         <location filename="../../ui/src/abstractlogview.cpp" line="2020"/>
         <source>Copy with line numbers</source>
-        <translation type="unfinished">拷贝并附加行号</translation>
+        <translation>拷贝并附加行号</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="629"/>
         <source>None</source>
-        <translation type="unfinished">无</translation>
+        <translation>无</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="665"/>
@@ -43,7 +43,7 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="1479"/>
         <source>Saving content to %1</source>
-        <translation type="unfinished">将内容保存到 %1</translation>
+        <translation>将内容保存到 %1</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2025"/>
@@ -88,22 +88,22 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2051"/>
         <source>&amp;Replace search</source>
-        <translation type="unfinished">替换(&amp;R)</translation>
+        <translation>替换(&amp;R)</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2052"/>
         <source>Replace the search expression with the selection</source>
-        <translation type="unfinished">用选择内容替换搜索表达式</translation>
+        <translation>用选择内容替换搜索表达式</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2056"/>
         <source>&amp;Add to search</source>
-        <translation type="unfinished">添加到搜索(&amp;A)</translation>
+        <translation>添加到搜索(&amp;A)</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2057"/>
         <source>Add the selection to the current search</source>
-        <translation type="unfinished">将选择添加到搜索</translation>
+        <translation>将选择添加到搜索</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2061"/>
@@ -113,7 +113,7 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2062"/>
         <source>Excludes the selection from search</source>
-        <translation type="unfinished">从搜索中排除所选内容</translation>
+        <translation>从搜索中排除所选内容</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2066"/>
@@ -128,7 +128,7 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2074"/>
         <source>Clear search limits</source>
-        <translation type="unfinished">清除搜索限制</translation>
+        <translation>清除搜索限制</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2078"/>
@@ -143,7 +143,7 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2086"/>
         <source>Save splitter position</source>
-        <translation type="unfinished">设置为默认窗口分割线位置</translation>
+        <translation>设置为默认窗口分割线位置</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2090"/>
@@ -158,12 +158,64 @@
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2099"/>
         <source>Highlighters</source>
-        <translation type="unfinished">高亮显示</translation>
+        <translation>高亮显示</translation>
     </message>
     <message>
         <location filename="../../ui/src/abstractlogview.cpp" line="2100"/>
         <source>Color labels</source>
-        <translation type="unfinished">颜色标签</translation>
+        <translation>颜色标签</translation>
+    </message>
+    <message>
+        <source>Track selected field ID</source>
+        <translation>追踪选中的字段 ID</translation>
+    </message>
+    <message>
+        <source>Track field ID</source>
+        <translation>追踪字段 ID</translation>
+    </message>
+    <message>
+        <source>Select an ID value or a complete field=value pair first.</source>
+        <translation>请先选中 ID 值或完整的 字段=值。</translation>
+    </message>
+    <message>
+        <source>No unique ID field was found. Select the complete field=value pair, such as frameNumber=1234 or requestId:87.</source>
+        <translation>无法确定唯一的 ID 字段。请选择完整的字段和值，例如 frameNumber=1234 或 requestId:87。</translation>
+    </message>
+    <message>
+        <source>Use this line as elapsed-time start</source>
+        <translation>将此行设为计时起点</translation>
+    </message>
+    <message>
+        <source>Elapsed time</source>
+        <translation>两行耗时</translation>
+    </message>
+    <message>
+        <source>No supported timestamp at the beginning of this line. Supported: HH:mm:ss.ffffff, MM-DD HH:mm:ss.ffffff, YYYY-MM-DD HH:mm:ss.ffffff.</source>
+        <translation>此行开头没有支持的时间戳。支持 时:分:秒.微秒、月-日 时:分:秒.微秒、年-月-日 时:分:秒.微秒。</translation>
+    </message>
+    <message>
+        <source>Elapsed-time start saved</source>
+        <translation>已保存计时起点</translation>
+    </message>
+    <message>
+        <source>Right-click the end line and choose Calculate elapsed time from start.</source>
+        <translation>右键单击终点行，选择“计算从起点到此行的耗时”。</translation>
+    </message>
+    <message>
+        <source>Calculate elapsed time from start</source>
+        <translation>计算从起点到此行的耗时</translation>
+    </message>
+    <message>
+        <source>Elapsed time unavailable</source>
+        <translation>无法计算耗时</translation>
+    </message>
+    <message>
+        <source>Set a start line first. Both lines must have compatible timestamps in chronological order. Midnight without dates and timezone offsets are not inferred.</source>
+        <translation>请先设置起点。两行时间戳需格式兼容且时间递增；无日期的跨午夜时间和时区偏移不作推算。</translation>
+    </message>
+    <message>
+        <source>%1 ms (%2 microseconds)</source>
+        <translation>%1 毫秒（%2 微秒）</translation>
     </message>
 </context>
 <context>
@@ -181,17 +233,17 @@
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="483"/>
         <source>Search in progress (%1 %)...</source>
-        <translation type="unfinished">正在搜索（%1 %）...</translation>
+        <translation>正在搜索（%1 %）...</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="484"/>
         <source> %1 matches found so far.</source>
-        <translation type="unfinished"> 已找到 %1 的匹配.</translation>
+        <translation> 已找到 %1 个匹配项。</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="486"/>
         <source> %1 match found so far.</source>
-        <translation type="unfinished"> 已找到 %1 的匹配.</translation>
+        <translation> 已找到 %1 个匹配项。</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="964"/>
@@ -211,47 +263,47 @@
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1023"/>
         <source>Match case</source>
-        <translation type="unfinished">匹配大小写</translation>
+        <translation>区分大小写</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1029"/>
         <source>Use regex</source>
-        <translation type="unfinished">使用正则匹配</translation>
+        <translation>使用正则匹配</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1035"/>
         <source>Inverse match</source>
-        <translation type="unfinished">反转匹配</translation>
+        <translation>反向匹配</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1041"/>
         <source>Enable regular expression logical combining</source>
-        <translation type="unfinished">启用正则表达式逻辑组合</translation>
+        <translation>启用正则表达式逻辑组合</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1047"/>
         <source>Auto-refresh</source>
-        <translation type="unfinished">自动刷新</translation>
+        <translation>自动刷新</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1063"/>
         <source>Clear search history</source>
-        <translation type="unfinished">清空搜索历史</translation>
+        <translation>清空搜索历史</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1064"/>
         <source>Edit search history</source>
-        <translation type="unfinished">编辑搜索历史</translation>
+        <translation>编辑搜索历史</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1065"/>
         <source>Save as Filter</source>
-        <translation type="unfinished">保存过滤器</translation>
+        <translation>另存为过滤器</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1078"/>
         <source>Clear search text</source>
-        <translation type="unfinished">清除正在搜索的文本</translation>
+        <translation>清空搜索文本</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1083"/>
@@ -261,32 +313,104 @@
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1455"/>
         <source>Error in expression</source>
-        <translation type="unfinished">表达式错误</translation>
+        <translation>表达式错误</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1505"/>
         <source>%1 matches found</source>
-        <translation type="unfinished">找到%1个匹配</translation>
+        <translation>找到 %1 个匹配项</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1506"/>
         <source>%1 match found</source>
-        <translation type="unfinished">找到%1个匹配</translation>
+        <translation>找到 %1 个匹配项</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1510"/>
         <source>File truncated on disk</source>
-        <translation type="unfinished">磁盘中文件被截断</translation>
+        <translation>磁盘中文件被截断</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1544"/>
         <source>Displayed as %1</source>
-        <translation type="unfinished">转换至编码: %1</translation>
+        <translation>显示编码：%1</translation>
     </message>
     <message>
         <location filename="../../ui/src/crawlerwidget.cpp" line="1544"/>
         <source>Detected as %1</source>
-        <translation type="unfinished">检测到编码: %1</translation>
+        <translation>检测到的编码：%1</translation>
+    </message>
+    <message>
+        <source>Query plans</source>
+        <translation>查询方案</translation>
+    </message>
+    <message>
+        <source>Cannot read query plans. The original file was preserved.
+%1</source>
+        <translation>无法读取查询方案，原文件已保留。
+%1</translation>
+    </message>
+    <message>
+        <source>Save current query...</source>
+        <translation>保存当前查询...</translation>
+    </message>
+    <message>
+        <source>Cannot save an invalid query.
+%1</source>
+        <translation>无法保存无效的搜索表达式。
+%1</translation>
+    </message>
+    <message>
+        <source>Save query plan</source>
+        <translation>保存查询方案</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>名称：</translation>
+    </message>
+    <message>
+        <source>Replace query plan "%1"?</source>
+        <translation>替换查询方案“%1”？</translation>
+    </message>
+    <message>
+        <source>Cannot save query plans.
+%1</source>
+        <translation>无法保存查询方案。
+%1</translation>
+    </message>
+    <message>
+        <source>No saved query plans</source>
+        <translation>暂无保存的查询方案</translation>
+    </message>
+    <message>
+        <source>Delete query plan</source>
+        <translation>删除查询方案</translation>
+    </message>
+    <message>
+        <source>Cannot run this query.
+%1</source>
+        <translation>无法执行此查询。
+%1</translation>
+    </message>
+    <message>
+        <source>Delete query plan "%1"?</source>
+        <translation>删除查询方案“%1”？</translation>
+    </message>
+    <message>
+        <source>Keep Results</source>
+        <translation>保留结果</translation>
+    </message>
+    <message>
+        <source>Keep these results and show subsequent results in a new window</source>
+        <translation>保留当前结果，后续搜索结果在新的结果页显示</translation>
+    </message>
+    <message>
+        <source>Queries</source>
+        <translation>查询方案</translation>
+    </message>
+    <message>
+        <source>Save or run a complete query with its search options</source>
+        <translation>保存完整搜索条件与选项，或直接执行已保存的查询方案</translation>
     </message>
 </context>
 <context>
@@ -294,7 +418,7 @@
     <message>
         <location filename="../../ui/include/highlighteredit.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished">表单</translation>
+        <translation>表单</translation>
     </message>
     <message>
         <location filename="../../ui/include/highlighteredit.ui" line="20"/>
@@ -347,7 +471,7 @@
     <message>
         <location filename="../../ui/include/highlightersetedit.ui" line="14"/>
         <source>Highlighters</source>
-        <translation type="unfinished">高亮显示规则</translation>
+        <translation>高亮显示规则</translation>
     </message>
     <message>
         <location filename="../../ui/include/highlightersetedit.ui" line="22"/>
@@ -381,12 +505,12 @@
         <location filename="../../ui/include/highlightersdialog.ui" line="14"/>
         <location filename="../../ui/include/highlightersdialog.ui" line="24"/>
         <source>Highlighters</source>
-        <translation type="unfinished">高亮规则</translation>
+        <translation>高亮规则</translation>
     </message>
     <message>
         <location filename="../../ui/include/highlightersdialog.ui" line="46"/>
         <source>Available sets</source>
-        <translation type="unfinished">可用列表</translation>
+        <translation>可用规则集</translation>
     </message>
     <message>
         <location filename="../../ui/include/highlightersdialog.ui" line="61"/>
@@ -441,22 +565,22 @@
     <message>
         <location filename="../../ui/include/highlightersdialog.ui" line="209"/>
         <source>Include into cycle</source>
-        <translation type="unfinished">包含到标记队列</translation>
+        <translation>参与循环切换</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlightersdialog.cpp" line="193"/>
         <source>Export highlighters configuration</source>
-        <translation type="unfinished">导出高亮规则到文件</translation>
+        <translation>导出高亮规则到文件</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlightersdialog.cpp" line="211"/>
         <source>Select one or more files to open</source>
-        <translation type="unfinished">选择一个或多个文件打开</translation>
+        <translation>选择一个或多个文件打开</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlightersdialog.cpp" line="211"/>
         <source>Highlighters (*.conf)</source>
-        <translation type="unfinished">高亮规则 (*.conf)</translation>
+        <translation>高亮规则 (*.conf)</translation>
     </message>
 </context>
 <context>
@@ -469,7 +593,7 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="2072"/>
         <source>Select item to remove from favorites</source>
-        <translation type="unfinished">选择从收藏中移除的项目</translation>
+        <translation>选择从收藏中移除的项目</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="2117"/>
@@ -494,12 +618,12 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="196"/>
         <source>klogg - scratchpad</source>
-        <translation type="unfinished">klogg - 暂存器</translation>
+        <translation>klogg - 暂存器</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="740"/>
         <source>Open Recent</source>
-        <translation type="unfinished">最近打开文件</translation>
+        <translation>最近打开文件</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="872"/>
@@ -576,7 +700,7 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1206"/>
         <source>&lt;h2&gt;klogg %1&lt;/h2&gt;&lt;p&gt;A fast, advanced log explorer.&lt;/p&gt;&lt;p&gt;Built %2 from %3&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/variar/klogg&quot;&gt;https://github.com/variar/klogg&lt;/a&gt;&lt;/p&gt;&lt;p&gt;This is fork of glogg&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://glogg.bonnefon.org/&quot;&gt;http://glogg.bonnefon.org/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Using icons from &lt;a href=&quot;https://icons8.com&quot;&gt;icons8.com&lt;/a&gt; project&lt;/p&gt;&lt;p&gt;Copyright &amp;copy; 2020 Nicolas Bonnefon, Anton Filimonov and other contributors&lt;/p&gt;&lt;p&gt;You may modify and redistribute the program under the terms of the GPL (version 3 or later).&lt;/p&gt;</source>
-        <translation type="unfinished">&lt;h2&gt;klogg %1&lt;/h2&gt;&lt;p&gt;A fast, advanced log explorer.&lt;/p&gt;&lt;p&gt;Built %2 from %3&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/variar/klogg&quot;&gt;https://github.com/variar/klogg&lt;/a&gt;&lt;/p&gt;&lt;p&gt;This is fork of glogg&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://glogg.bonnefon.org/&quot;&gt;http://glogg.bonnefon.org/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Using icons from &lt;a href=&quot;https://icons8.com&quot;&gt;icons8.com&lt;/a&gt; project&lt;/p&gt;&lt;p&gt;Copyright &amp;copy; 2020 Nicolas Bonnefon, Anton Filimonov and other contributors&lt;/p&gt;&lt;p&gt;You may modify and redistribute the program under the terms of the GPL (version 3 or later).&lt;/p&gt;</translation>
+        <translation>&lt;h2&gt;klogg %1&lt;/h2&gt;&lt;p&gt;快速、功能丰富的日志浏览工具。&lt;/p&gt;&lt;p&gt;构建时间：%2，源版本：%3&lt;/p&gt;&lt;p&gt;&lt;a href="https://github.com/variar/klogg"&gt;https://github.com/variar/klogg&lt;/a&gt;&lt;/p&gt;&lt;p&gt;本项目基于 glogg 开发&lt;/p&gt;&lt;p&gt;&lt;a href="http://glogg.bonnefon.org/"&gt;http://glogg.bonnefon.org/&lt;/a&gt;&lt;/p&gt;&lt;p&gt;图标来自 &lt;a href="https://icons8.com"&gt;icons8.com&lt;/a&gt; 项目&lt;/p&gt;&lt;p&gt;版权所有 &amp;copy; 2020 Nicolas Bonnefon、Anton Filimonov 及其他贡献者&lt;/p&gt;&lt;p&gt;您可以按照 GPL 第 3 版或更高版本的条款修改和重新分发本程序。&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1221"/>
@@ -591,7 +715,7 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1695"/>
         <source>Open file from archive</source>
-        <translation type="unfinished">从压缩包中打开文件</translation>
+        <translation>从压缩包中打开文件</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1818"/>
@@ -614,32 +738,32 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1328"/>
         <source>Ln:%1/%2</source>
-        <translation type="unfinished"></translation>
+        <translation>行：%1/%2</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1333"/>
         <source>Ln:%1/%2 Col:%3 Sel:%4|%5</source>
-        <translation type="unfinished"></translation>
+        <translation>行：%1/%2 列：%3 选中：%4|%5</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1342"/>
         <source>Ln:%1/%2 Sel:%4|%5</source>
-        <translation type="unfinished"></translation>
+        <translation>行：%1/%2 选中：%4|%5</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1370"/>
         <source> - Indexing lines... (%1 %)</source>
-        <translation type="unfinished"> - 正在索引行... (%1 %)</translation>
+        <translation> - 正在索引行... (%1 %)</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1403"/>
         <source>Not enough memory.</source>
-        <translation type="unfinished">内存不足.</translation>
+        <translation>内存不足。</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1405"/>
         <source>The system does not have enough memory to hold the index for this file. The file will now be closed.</source>
-        <translation type="unfinished">系统内存不, 无法来记录文件索引。文件将被关闭。</translation>
+        <translation>系统内存不足，无法保存此文件的索引。文件即将关闭。</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1641"/>
@@ -649,17 +773,17 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1653"/>
         <source>Extracting %1</source>
-        <translation type="unfinished">正在解压缩 %1</translation>
+        <translation>正在解压缩 %1</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1681"/>
         <source>Failed to decompress %1</source>
-        <translation type="unfinished">解压失败 %1</translation>
+        <translation>无法解压 %1</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1706"/>
         <source>Failed to extract %1</source>
-        <translation type="unfinished">提取 %1 失败</translation>
+        <translation>提取 %1 失败</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1828"/>
@@ -674,12 +798,20 @@
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="1926"/>
         <source>modified on %1</source>
-        <translation type="unfinished">修改于 %1</translation>
+        <translation>修改于 %1</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindow.cpp" line="2071"/>
         <source>Remove from favorites</source>
         <translation>从收藏中移除</translation>
+    </message>
+    <message>
+        <source>Scratchpad save failed</source>
+        <translation>暂存器保存失败</translation>
+    </message>
+    <message>
+        <source>Scratchpad changes could not be saved. Cancel to use Save As, or discard unsaved changes and exit.</source>
+        <translation>无法保存暂存器更改。可取消并使用“另存为”，或放弃未保存的更改并退出。</translation>
     </message>
 </context>
 <context>
@@ -712,17 +844,17 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="94"/>
         <source>Incremental</source>
-        <translation type="unfinished">增量</translation>
+        <translation>增量</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="115"/>
         <source>Variate highlight</source>
-        <translation type="unfinished">突出显示变量</translation>
+        <translation>使用不同颜色高亮匹配项</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="139"/>
         <source>Run search on add or replace pattern</source>
-        <translation type="unfinished">在添加或替换模式上运行搜索</translation>
+        <translation>添加或替换搜索条件后立即搜索</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="151"/>
@@ -737,17 +869,17 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="164"/>
         <source>Load last session</source>
-        <translation type="unfinished">加载最后的会话</translation>
+        <translation>恢复上次会话</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="171"/>
         <source>Follow file on load</source>
-        <translation type="unfinished">加载时跟踪文件</translation>
+        <translation>打开文件后自动跟随新增内容</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="178"/>
         <source>Enable multiple windows</source>
-        <translation type="unfinished">打开多窗口模式</translation>
+        <translation>打开多窗口模式</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="188"/>
@@ -767,37 +899,37 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="77"/>
         <source>QuickFind search type: </source>
-        <translation type="unfinished">快速查找搜索类型: </translation>
+        <translation>快速查找类型：</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="122"/>
         <source>Main search type: </source>
-        <translation type="unfinished">主要查找类型: </translation>
+        <translation>主搜索类型：</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="230"/>
         <source>Text</source>
-        <translation type="unfinished">文本</translation>
+        <translation>文本</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="238"/>
         <source>Font family: </source>
-        <translation type="unfinished">字体: </translation>
+        <translation>字体: </translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="255"/>
         <source>Font size: </source>
-        <translation type="unfinished">大小: </translation>
+        <translation>大小: </translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="276"/>
         <source>Force font anti-aliasing</source>
-        <translation type="unfinished">强制字体抗锯齿</translation>
+        <translation>强制字体抗锯齿</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="283"/>
         <source>Wrap text</source>
-        <translation type="unfinished">文本换行</translation>
+        <translation>文本换行</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="297"/>
@@ -822,32 +954,32 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="341"/>
         <source>Scale rounding:</source>
-        <translation type="unfinished">缩放类型:</translation>
+        <translation>缩放比例取整方式：</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="355"/>
         <source>Round</source>
-        <translation type="unfinished">取近似值</translation>
+        <translation>四舍五入</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="360"/>
         <source>Ceil</source>
-        <translation type="unfinished">向上取整</translation>
+        <translation>向上取整</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="365"/>
         <source>Floor</source>
-        <translation type="unfinished">向下取整</translation>
+        <translation>向下取整</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="370"/>
         <source>RoundPreferFloor</source>
-        <translation type="unfinished">优先向下取整</translation>
+        <translation>优先向下取整</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="375"/>
         <source>PassThrough</source>
-        <translation type="unfinished">透传</translation>
+        <translation>保持原始比例</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="385"/>
@@ -857,12 +989,12 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="395"/>
         <source>Miscellaneous</source>
-        <translation type="unfinished">其他</translation>
+        <translation>其他</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="404"/>
         <source>Hide ANSI Colors (search performance will be reduced)</source>
-        <translation type="unfinished">隐藏ANSI颜色（搜索性能会降低）</translation>
+        <translation>隐藏ANSI颜色（搜索性能会降低）</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="431"/>
@@ -877,7 +1009,7 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="443"/>
         <source>Enable filesystem change monitoring</source>
-        <translation type="unfinished">启用文件系统变化检测</translation>
+        <translation>启用文件系统变化检测</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="450"/>
@@ -892,7 +1024,7 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="481"/>
         <source>Use fast modification detection</source>
-        <translation type="unfinished">使用快速修改检测</translation>
+        <translation>使用快速修改检测</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="488"/>
@@ -907,7 +1039,7 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="506"/>
         <source>Encoding for new files</source>
-        <translation type="unfinished">对新文件进行编码</translation>
+        <translation>新打开文件的默认编码</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="530"/>
@@ -917,22 +1049,22 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="544"/>
         <source>Show the number of recently opened files:</source>
-        <translation type="unfinished">最近打开文件列表长度：</translation>
+        <translation>最近打开文件列表长度：</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="566"/>
         <source>Archives</source>
-        <translation type="unfinished">归档</translation>
+        <translation>压缩包</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="572"/>
         <source>Extract archives</source>
-        <translation type="unfinished">自动解压归档</translation>
+        <translation>解压压缩包</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="579"/>
         <source>Extract archives without confirmation</source>
-        <translation type="unfinished">无需确认即可提取档案</translation>
+        <translation>解压压缩包时不再询问</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="589"/>
@@ -967,47 +1099,47 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="670"/>
         <source>Use parallel search</source>
-        <translation type="unfinished">使用并行搜索</translation>
+        <translation>使用并行搜索</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="680"/>
         <source>Index file read buffer (Mib):</source>
-        <translation type="unfinished">索引文件读取缓冲区大小(Mib):</translation>
+        <translation>索引文件读取缓冲区大小(Mib):</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="697"/>
         <source>Search read buffer (lines):</source>
-        <translation type="unfinished">搜索读取缓冲区大小(行数):</translation>
+        <translation>搜索读取缓冲区大小(行数):</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="720"/>
         <source>File will be kept closed as much as possible. Affects only files opened after check state changed</source>
-        <translation type="unfinished">文件将尽可能地保持关闭。只影响到检查状态改变后打开的文件</translation>
+        <translation>尽量在不读取时关闭文件句柄。此选项仅影响更改后打开的文件。</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="723"/>
         <source>Keep file closed</source>
-        <translation type="unfinished">保持文件关闭</translation>
+        <translation>尽量关闭文件句柄</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="740"/>
         <source>Optimize search for non-latin encodings</source>
-        <translation type="unfinished">优化非拉丁文编码搜索</translation>
+        <translation>优化非拉丁文编码搜索</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="750"/>
         <source>Caching</source>
-        <translation type="unfinished">缓存</translation>
+        <translation>缓存</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="765"/>
         <source>Enable search results cache</source>
-        <translation type="unfinished">启用搜索结果缓存</translation>
+        <translation>启用搜索结果缓存</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="775"/>
         <source>Search cache size (lines):</source>
-        <translation type="unfinished">搜索缓存行数:</translation>
+        <translation>搜索缓存行数:</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="801"/>
@@ -1017,17 +1149,17 @@
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="807"/>
         <source>Enable logging</source>
-        <translation type="unfinished">打开日志</translation>
+        <translation>启用诊断日志</translation>
     </message>
     <message>
         <location filename="../../ui/include/optionsdialog.ui" line="816"/>
         <source>Verbosity</source>
-        <translation type="unfinished">详细级别</translation>
+        <translation>详细级别</translation>
     </message>
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="132"/>
         <source>Extended Regexp</source>
-        <translation type="unfinished">扩展正则表达式</translation>
+        <translation>扩展正则表达式</translation>
     </message>
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="132"/>
@@ -1037,7 +1169,7 @@
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="138"/>
         <source>Hyperscan</source>
-        <translation type="unfinished">Hyperscan</translation>
+        <translation>Hyperscan</translation>
     </message>
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="138"/>
@@ -1047,22 +1179,22 @@
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="574"/>
         <source>Klogg needs to be restarted to apply some changes. </source>
-        <translation type="unfinished">Klogg 需要关闭后重新打开才能应用这些更改. </translation>
+        <translation>部分更改需要重新启动 Klogg 才能生效。</translation>
     </message>
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="687"/>
         <source>Action</source>
-        <translation type="unfinished">动作</translation>
+        <translation>操作</translation>
     </message>
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="688"/>
         <source>Primary shortcut</source>
-        <translation type="unfinished">首选快捷键</translation>
+        <translation>首选快捷键</translation>
     </message>
     <message>
         <location filename="../../ui/src/optionsdialog.cpp" line="690"/>
         <source>Secondary shortcut</source>
-        <translation type="unfinished">备选快捷键</translation>
+        <translation>备选快捷键</translation>
     </message>
 </context>
 <context>
@@ -1070,27 +1202,27 @@
     <message>
         <location filename="../../ui/src/pathline.cpp" line="39"/>
         <source>Copy full path</source>
-        <translation type="unfinished">拷贝完整路径</translation>
+        <translation>拷贝完整路径</translation>
     </message>
     <message>
         <location filename="../../ui/src/pathline.cpp" line="40"/>
         <source>Copy file name</source>
-        <translation type="unfinished">拷贝文件名</translation>
+        <translation>拷贝文件名</translation>
     </message>
     <message>
         <location filename="../../ui/src/pathline.cpp" line="41"/>
         <source>Open containing folder</source>
-        <translation type="unfinished">打开包含此文件的文件夹</translation>
+        <translation>打开包含此文件的文件夹</translation>
     </message>
     <message>
         <location filename="../../ui/src/pathline.cpp" line="43"/>
         <source>Copy</source>
-        <translation type="unfinished">拷贝</translation>
+        <translation>拷贝</translation>
     </message>
     <message>
         <location filename="../../ui/src/pathline.cpp" line="45"/>
         <source>Select all</source>
-        <translation type="unfinished">选择全部</translation>
+        <translation>选择全部</translation>
     </message>
 </context>
 <context>
@@ -1098,7 +1230,7 @@
     <message>
         <location filename="../../ui/src/predefinedfilterscombobox.cpp" line="108"/>
         <source>Predefined filters</source>
-        <translation type="unfinished">预定义的过滤器</translation>
+        <translation>预定义过滤器</translation>
     </message>
 </context>
 <context>
@@ -1141,37 +1273,105 @@
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="161"/>
         <source>Name</source>
-        <translation type="unfinished">名称</translation>
+        <translation>名称</translation>
     </message>
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="161"/>
         <source>Pattern</source>
-        <translation type="unfinished">匹配的值</translation>
+        <translation>匹配内容</translation>
     </message>
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="162"/>
         <source>Regex</source>
-        <translation type="unfinished">正则表达式</translation>
+        <translation>正则表达式</translation>
     </message>
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="288"/>
         <source>Select file to import</source>
-        <translation type="unfinished">选择文件导入</translation>
+        <translation>选择文件导入</translation>
     </message>
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="289"/>
         <source>Predefined filters (*.conf);;All files (*)</source>
-        <translation type="unfinished">预定义过滤器 (*.conf);;全部文件 (*)</translation>
+        <translation>预定义过滤器 (*.conf);;全部文件 (*)</translation>
     </message>
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="305"/>
         <source>Export predefined filters</source>
-        <translation type="unfinished">导出预定义的过滤器</translation>
+        <translation>导出预定义过滤器</translation>
     </message>
     <message>
         <location filename="../../ui/src/predefinedfiltersdialog.cpp" line="306"/>
         <source>Predefined filters (*.conf)</source>
-        <translation type="unfinished">预定义过滤器 (*.conf)</translation>
+        <translation>预定义过滤器 (*.conf)</translation>
+    </message>
+    <message>
+        <source>Color</source>
+        <translation>颜色</translation>
+    </message>
+    <message>
+        <source>Highlight</source>
+        <translation>高亮范围</translation>
+    </message>
+    <message>
+        <source>Search highlight</source>
+        <translation>沿用搜索高亮</translation>
+    </message>
+    <message>
+        <source>Keywords</source>
+        <translation>关键词</translation>
+    </message>
+    <message>
+        <source>Whole line</source>
+        <translation>整行</translation>
+    </message>
+    <message>
+        <source>Applied to enabled filters in both log views. When whole-line rules overlap, the first filter wins; keyword colors remain visible.</source>
+        <translation>应用于两个日志视图中已启用的过滤器。整行规则重叠时优先使用排在前面的过滤器；关键词仍以各自颜色显示。</translation>
+    </message>
+    <message>
+        <source>Incomplete filter</source>
+        <translation>过滤器信息不完整</translation>
+    </message>
+    <message>
+        <source>Enter both a name and a pattern.</source>
+        <translation>请输入名称和匹配内容。</translation>
+    </message>
+    <message>
+        <source>Invalid regular expression</source>
+        <translation>正则表达式无效</translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation>分组</translation>
+    </message>
+    <message>
+        <source>Catppuccin Latte - soft</source>
+        <translation>Catppuccin Latte · 柔和</translation>
+    </message>
+    <message>
+        <source>Nord - cool</source>
+        <translation>Nord · 冷色</translation>
+    </message>
+    <message>
+        <source>Vivid - high contrast</source>
+        <translation>鲜明 · 高对比</translation>
+    </message>
+    <message>
+        <source>Used for new filters and remembered on saving. Existing colors stay unchanged until you apply the palette.</source>
+        <translation>新建过滤器使用此方案，保存后下次启动继续使用。套用配色前不会改变现有颜色。</translation>
+    </message>
+    <message>
+        <source>Apply palette to all</source>
+        <translation>一键套用到全部</translation>
+    </message>
+    <message>
+        <source>Replace colors in this table. Keep whole-line highlighting; other filters use keyword highlighting. Save with OK or Apply; Cancel discards changes.</source>
+        <translation>替换表格中的颜色。保留整行高亮，其他过滤器使用关键词高亮。点击确定或应用保存，取消则放弃更改。</translation>
+    </message>
+    <message>
+        <source>Color palette:</source>
+        <translation>配色方案：</translation>
     </message>
 </context>
 <context>
@@ -1184,7 +1384,7 @@
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="176"/>
         <source>Open new window</source>
-        <translation type="unfinished">在新的窗口打开</translation>
+        <translation>打开新窗口</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="177"/>
@@ -1194,77 +1394,77 @@
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="178"/>
         <source>Close file</source>
-        <translation type="unfinished">关闭文件</translation>
+        <translation>关闭文件</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="179"/>
         <source>Close all files</source>
-        <translation type="unfinished">关闭所有文件</translation>
+        <translation>关闭所有文件</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="180"/>
         <source>Select all</source>
-        <translation type="unfinished">选择全部</translation>
+        <translation>选择全部</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="181"/>
         <source>Copy selection to clipboard</source>
-        <translation type="unfinished">拷贝选中内容到剪贴板</translation>
+        <translation>拷贝选中内容到剪贴板</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="182"/>
         <source>Exit application</source>
-        <translation type="unfinished">退出应用</translation>
+        <translation>退出应用</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="183"/>
         <source>Open quick find</source>
-        <translation type="unfinished">打开快速搜索</translation>
+        <translation>打开快速查找</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="184"/>
         <source>Quick find forward</source>
-        <translation type="unfinished">向前快速查找</translation>
+        <translation>向前快速查找</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="185"/>
         <source>Quick find backward</source>
-        <translation type="unfinished">向后快速查找</translation>
+        <translation>向后快速查找</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="187"/>
         <source>Set focus to search input</source>
-        <translation type="unfinished">聚焦到搜索框</translation>
+        <translation>聚焦到搜索框</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="188"/>
         <source>Clear file</source>
-        <translation type="unfinished">清空文件内容</translation>
+        <translation>清空文件内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="190"/>
         <source>Open containing folder</source>
-        <translation type="unfinished">打开包含此文件的文件夹</translation>
+        <translation>打开包含此文件的文件夹</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="191"/>
         <source>Open file in editor</source>
-        <translation type="unfinished">在编辑器中打开</translation>
+        <translation>在编辑器中打开</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="193"/>
         <source>Copy file path to clipboard</source>
-        <translation type="unfinished">拷贝当前文件路径到剪贴板</translation>
+        <translation>拷贝当前文件路径到剪贴板</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="195"/>
         <source>Paste text from clipboard</source>
-        <translation type="unfinished">粘贴</translation>
+        <translation>粘贴</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="196"/>
         <source>Open file from URL</source>
-        <translation type="unfinished">打开URL作为日志文件</translation>
+        <translation>从 URL 打开日志文件</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="197"/>
@@ -1279,287 +1479,355 @@
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="199"/>
         <source>Reload file</source>
-        <translation type="unfinished">重新加载文件</translation>
+        <translation>重新加载文件</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="200"/>
         <source>Stop file loading</source>
-        <translation type="unfinished">停止正在加载的文件</translation>
+        <translation>停止正在加载的文件</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="201"/>
         <source>Open scratchpad</source>
-        <translation type="unfinished">打开暂存器</translation>
+        <translation>打开暂存器</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="202"/>
         <source>Switch to file</source>
-        <translation type="unfinished">切换到文件</translation>
+        <translation>切换到文件</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="205"/>
         <source>Change filtered lines visibility</source>
-        <translation type="unfinished">更改显示结果类型</translation>
+        <translation>更改显示结果类型</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="206"/>
         <source>Increase main view</source>
-        <translation type="unfinished">向下移动窗口分割线</translation>
+        <translation>增大主日志区</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="207"/>
         <source>Decrease main view</source>
-        <translation type="unfinished">向下移动窗口分割线</translation>
+        <translation>缩小主日志区</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="209"/>
         <source>QuickFind: Find next</source>
-        <translation type="unfinished">快速查找：后一个</translation>
+        <translation>快速查找：后一个</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="210"/>
         <source>QuickFind: Find previous</source>
-        <translation type="unfinished">快速查找：前一个</translation>
+        <translation>快速查找：前一个</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="212"/>
         <source>Add line mark</source>
-        <translation type="unfinished">标记当前行</translation>
+        <translation>标记当前行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="214"/>
         <source>Jump to next mark</source>
-        <translation type="unfinished">跳转到下一处标记行</translation>
+        <translation>跳转到下一处标记行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="215"/>
         <source>Jump to previous mark</source>
-        <translation type="unfinished">跳转到上一处标记行</translation>
+        <translation>跳转到上一处标记行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="216"/>
         <source>Move selection up</source>
-        <translation type="unfinished">向上移动</translation>
+        <translation>向上移动</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="217"/>
         <source>Move selection down</source>
-        <translation type="unfinished">向下移动</translation>
+        <translation>向下移动</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="218"/>
         <source>Scroll up</source>
-        <translation type="unfinished">上一个标签页</translation>
+        <translation>向上滚动</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="219"/>
         <source>Scroll down</source>
-        <translation type="unfinished">下一个标签页</translation>
+        <translation>向下滚动</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="220"/>
         <source>Scroll left</source>
-        <translation type="unfinished">向左滚动</translation>
+        <translation>向左滚动</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="221"/>
         <source>Scroll right</source>
-        <translation type="unfinished">向右滚动</translation>
+        <translation>向右滚动</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="223"/>
         <source>Jump to the beginning of the current line</source>
-        <translation type="unfinished">跳转到行首</translation>
+        <translation>跳转到行首</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="225"/>
         <source>Jump to the end start of the current line</source>
-        <translation type="unfinished">跳转到行尾</translation>
+        <translation>跳转到行尾</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="227"/>
         <source>Jump to the right of the text</source>
-        <translation type="unfinished">跳转到全文最右侧</translation>
+        <translation>跳转到全文最右侧</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="229"/>
         <source>Jump to the buttom of the text</source>
-        <translation type="unfinished">跳转到最后一行</translation>
+        <translation>跳转到最后一行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="230"/>
         <source>Jump to the top of the text</source>
-        <translation type="unfinished">跳转到第一行</translation>
+        <translation>跳转到第一行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="231"/>
         <source>Jump to line</source>
-        <translation type="unfinished">跳转到指定行</translation>
+        <translation>跳转到指定行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="232"/>
         <source>Main view: find next</source>
-        <translation type="unfinished">主窗口：跳转到后一个选中内容</translation>
+        <translation>主窗口：跳转到后一个选中内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="233"/>
         <source>Main view: find previous</source>
-        <translation type="unfinished">主窗口: 跳转到前一个选中内容</translation>
+        <translation>主窗口: 跳转到前一个选中内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="236"/>
         <source>Set selection to QuickFind and find next</source>
-        <translation type="unfinished">跳转到下一个选中内容</translation>
+        <translation>跳转到下一个选中内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="238"/>
         <source>Set selection to QuickFind and find previous</source>
-        <translation type="unfinished">跳转到上一个选中内容</translation>
+        <translation>跳转到上一个选中内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="240"/>
         <source>Release focus from view</source>
-        <translation type="unfinished">主窗口与结果窗焦点切换</translation>
+        <translation>主窗口与结果窗焦点切换</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="243"/>
         <source>Highlight text with color 1</source>
-        <translation type="unfinished">使用颜色标签1高亮标记</translation>
+        <translation>使用颜色标签1高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="245"/>
         <source>Highlight text with color 2</source>
-        <translation type="unfinished">使用颜色标签2高亮标记</translation>
+        <translation>使用颜色标签2高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="247"/>
         <source>Highlight text with color 3</source>
-        <translation type="unfinished">使用颜色标签3高亮标记</translation>
+        <translation>使用颜色标签3高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="249"/>
         <source>Highlight text with color 4</source>
-        <translation type="unfinished">使用颜色标签4高亮标记</translation>
+        <translation>使用颜色标签4高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="251"/>
         <source>Highlight text with color 5</source>
-        <translation type="unfinished">使用颜色标签5高亮标记</translation>
+        <translation>使用颜色标签5高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="253"/>
         <source>Highlight text with color 6</source>
-        <translation type="unfinished">使用颜色标签6高亮标记</translation>
+        <translation>使用颜色标签6高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="255"/>
         <source>Highlight text with color 7</source>
-        <translation type="unfinished">使用颜色标签7高亮标记</translation>
+        <translation>使用颜色标签7高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="257"/>
         <source>Highlight text with color 8</source>
-        <translation type="unfinished">使用颜色标签8高亮标记</translation>
+        <translation>使用颜色标签8高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="259"/>
         <source>Highlight text with color 9</source>
-        <translation type="unfinished">使用颜色标签9高亮标记</translation>
+        <translation>使用颜色标签9高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="262"/>
         <source>Highlight text with next color</source>
-        <translation type="unfinished">使用下一个颜色标签标记</translation>
+        <translation>使用下一个颜色标签标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="264"/>
         <source>Clear all color labels</source>
-        <translation type="unfinished">清除所有手动高亮标记</translation>
+        <translation>清除所有手动高亮标记</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="267"/>
         <source>Send selection to scratchpad</source>
-        <translation type="unfinished">追加选中内容到暂存器</translation>
+        <translation>追加选中内容到暂存器</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="269"/>
         <source>Replace scratchpad with selection</source>
-        <translation type="unfinished">将暂存器内容替换为选中内容</translation>
+        <translation>将暂存器内容替换为选中内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="272"/>
         <source>Add selection to search pattern</source>
-        <translation type="unfinished">追加选中内容到搜索框</translation>
+        <translation>追加选中内容到搜索框</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="274"/>
         <source>Exclude selection from search pattern </source>
-        <translation type="unfinished">从搜索中排除所选内容 </translation>
+        <translation>从搜索中排除所选内容 </translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="276"/>
         <source>Replace search pattern with selection</source>
-        <translation type="unfinished">将搜索框内容替换为选中内容</translation>
+        <translation>将搜索框内容替换为选中内容</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="278"/>
         <source>Select lines down</source>
-        <translation type="unfinished">向下选中多行</translation>
+        <translation>向下选中多行</translation>
     </message>
     <message>
         <location filename="../../settings/src/shortcuts.cpp" line="279"/>
         <source>Select lines up</source>
-        <translation type="unfinished">向上选中多行</translation>
+        <translation>向上选中多行</translation>
     </message>
     <message>
         <location filename="../../ui/include/highlightersmenu.h" line="36"/>
         <source>None</source>
-        <translation type="unfinished">无</translation>
+        <translation>无</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="522"/>
         <source>Color label 1</source>
-        <translation type="unfinished">颜色标签1</translation>
+        <translation>颜色标签1</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="525"/>
         <source>Color label 2</source>
-        <translation type="unfinished">颜色标签2</translation>
+        <translation>颜色标签2</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="528"/>
         <source>Color label 3</source>
-        <translation type="unfinished">颜色标签3</translation>
+        <translation>颜色标签3</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="531"/>
         <source>Color label 4</source>
-        <translation type="unfinished">颜色标签4</translation>
+        <translation>颜色标签4</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="534"/>
         <source>Color label 5</source>
-        <translation type="unfinished">颜色标签5</translation>
+        <translation>颜色标签5</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="537"/>
         <source>Color label 6</source>
-        <translation type="unfinished">颜色标签6</translation>
+        <translation>颜色标签6</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="540"/>
         <source>Color label 7</source>
-        <translation type="unfinished">颜色标签7</translation>
+        <translation>颜色标签7</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="543"/>
         <source>Color label 8</source>
-        <translation type="unfinished">颜色标签8</translation>
+        <translation>颜色标签8</translation>
     </message>
     <message>
         <location filename="../../ui/src/highlighterset.cpp" line="546"/>
         <source>Color label 9</source>
-        <translation type="unfinished">颜色标签9</translation>
+        <translation>颜色标签9</translation>
+    </message>
+    <message>
+        <source>Color label %1</source>
+        <translation>颜色标签 %1</translation>
+    </message>
+    <message>
+        <source>Full Screen</source>
+        <translation>全屏</translation>
+    </message>
+    <message>
+        <source>Maximize window</source>
+        <translation>最大化窗口</translation>
+    </message>
+    <message>
+        <source>Minimize Window</source>
+        <translation>最小化窗口</translation>
+    </message>
+    <message>
+        <source>Preferences</source>
+        <translation>首选项</translation>
+    </message>
+    <message>
+        <source>Change filtered lines visibility forward</source>
+        <translation>切换到下一种过滤结果显示方式</translation>
+    </message>
+    <message>
+        <source>Change filtered lines visibility backward</source>
+        <translation>切换到上一种过滤结果显示方式</translation>
+    </message>
+    <message>
+        <source>Change filtered lines visibility to marks and matches</source>
+        <translation>显示标记行与匹配行</translation>
+    </message>
+    <message>
+        <source>Change filtered lines visibility to marks</source>
+        <translation>仅显示标记行</translation>
+    </message>
+    <message>
+        <source>Change filtered lines visibility to matches</source>
+        <translation>仅显示匹配行</translation>
+    </message>
+    <message>
+        <source>Enable case matching</source>
+        <translation>区分大小写</translation>
+    </message>
+    <message>
+        <source>Enable regex</source>
+        <translation>使用正则表达式</translation>
+    </message>
+    <message>
+        <source>Enable inverse matching</source>
+        <translation>反向匹配</translation>
+    </message>
+    <message>
+        <source>Enable regex combining</source>
+        <translation>启用逻辑组合</translation>
+    </message>
+    <message>
+        <source>Enable auto refresh</source>
+        <translation>自动刷新</translation>
+    </message>
+    <message>
+        <source>Keep search results</source>
+        <translation>保留搜索结果</translation>
+    </message>
+    <message>
+        <source>Jump to the bottom of the text</source>
+        <translation>跳转到最后一行</translation>
     </message>
 </context>
 <context>
@@ -1567,7 +1835,7 @@
     <message>
         <location filename="../../ui/include/qfnotifications.h" line="86"/>
         <source>Searching (position %1 %)</source>
-        <translation type="unfinished">查找 （位置 %1 %）</translation>
+        <translation>查找 （位置 %1 %）</translation>
     </message>
     <message>
         <location filename="../../logdata/src/readablesize.cpp" line="50"/>
@@ -1728,7 +1996,7 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="46"/>
         <source>Scrolls selected main view to specified line</source>
-        <translation type="unfinished">滚动选定的主视图到指定行</translation>
+        <translation>滚动选定的主视图到指定行</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="47"/>
@@ -1753,7 +2021,7 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="51"/>
         <source>Open containing folder</source>
-        <translation type="unfinished">打开包含此文件的文件夹</translation>
+        <translation>打开包含此文件的文件夹</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="53"/>
@@ -1803,17 +2071,17 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="63"/>
         <source>Matches &amp;overview</source>
-        <translation type="unfinished">匹配预览(&amp;o)</translation>
+        <translation>匹配预览(&amp;o)</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="64"/>
         <source>Line &amp;numbers in main view</source>
-        <translation type="unfinished">主视图中的行号(&amp;n)</translation>
+        <translation>主视图中的行号(&amp;n)</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="66"/>
         <source>Line &amp;numbers in filtered view</source>
-        <translation type="unfinished">过滤视图中的行号(&amp;n)</translation>
+        <translation>过滤视图中的行号(&amp;n)</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="67"/>
@@ -1823,7 +2091,7 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="68"/>
         <source>&amp;Wrap text</source>
-        <translation type="unfinished">文本换行(&amp;W)</translation>
+        <translation>文本换行(&amp;W)</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="69"/>
@@ -1838,22 +2106,22 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="71"/>
         <source>&amp;Preferences...</source>
-        <translation type="unfinished">首选项(&amp;P)...</translation>
+        <translation>首选项(&amp;P)...</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="72"/>
         <source>Show application settings dialog</source>
-        <translation type="unfinished">显示应用设置对话框</translation>
+        <translation>显示应用设置对话框</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="73"/>
         <source>Configure &amp;highlighters...</source>
-        <translation type="unfinished">配置高亮显示(&amp;h)...</translation>
+        <translation>配置高亮显示(&amp;h)...</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="74"/>
         <source>Show highlighters configuration</source>
-        <translation type="unfinished">展示高亮显示配置</translation>
+        <translation>展示高亮显示配置</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="75"/>
@@ -1883,7 +2151,7 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="80"/>
         <source>Show the Qt library&apos;s About box</source>
-        <translation type="unfinished">显示Qt库的 &quot;关于 &quot;框</translation>
+        <translation>显示 Qt 的关于对话框</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="81"/>
@@ -1928,12 +2196,12 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="91"/>
         <source>Scratchpad</source>
-        <translation type="unfinished">暂存器</translation>
+        <translation>暂存器</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="92"/>
         <source>Show the scratchpad</source>
-        <translation type="unfinished">显示暂存器</translation>
+        <translation>显示暂存器</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="93"/>
@@ -1953,12 +2221,12 @@
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="96"/>
         <source>Predefined filters...</source>
-        <translation type="unfinished">预定义的过滤器...</translation>
+        <translation>预定义过滤器...</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="98"/>
         <source>Show dialog to configure filters</source>
-        <translation type="unfinished">显示配置过滤器的对话框</translation>
+        <translation>显示配置过滤器的对话框</translation>
     </message>
     <message>
         <location filename="../../ui/src/mainwindowtext.cpp" line="99"/>
@@ -2035,4 +2303,328 @@
         <translation>Klogg 日志阅读器</translation>
     </message>
 </context>
+<context>
+    <name>PredefinedFiltersButtonPanel</name>
+    <message>
+        <source>More</source>
+        <translation>更多</translation>
+    </message>
+    <message>
+        <source>Edit filters and colors…</source>
+        <translation>编辑过滤器和颜色…</translation>
+    </message>
+    <message>
+        <source>Additional filters; each filter can be switched on independently.</source>
+        <translation>更多过滤器；各项可以独立开启或关闭。</translation>
+    </message>
+    <message>
+        <source>Click to toggle; right-click to edit colors and highlighting.</source>
+        <translation>单击开启或关闭；右键编辑颜色及高亮范围。</translation>
+    </message>
+    <message>
+        <source>All groups</source>
+        <translation>全部分组</translation>
+    </message>
+    <message>
+        <source>Ungrouped</source>
+        <translation>未分组</translation>
+    </message>
+    <message>
+        <source>Save enabled filters as combination…</source>
+        <translation>将当前启用的过滤器保存为组合…</translation>
+    </message>
+    <message>
+        <source>Save combination</source>
+        <translation>保存组合</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>名称：</translation>
+    </message>
+    <message>
+        <source>Replace combination</source>
+        <translation>替换组合</translation>
+    </message>
+    <message>
+        <source>Replace the saved combination with this name?</source>
+        <translation>替换同名的已保存组合？</translation>
+    </message>
+    <message>
+        <source>Load combination</source>
+        <translation>载入组合</translation>
+    </message>
+    <message>
+        <source>Delete combination</source>
+        <translation>删除组合</translation>
+    </message>
+    <message>
+        <source>Combination unavailable</source>
+        <translation>组合不可用</translation>
+    </message>
+    <message>
+        <source>Some filters were changed or deleted. The current search was kept.</source>
+        <translation>部分过滤器已修改或删除，当前搜索保持不变。</translation>
+    </message>
+    <message>
+        <source>Click to toggle; right-click to edit filters or save/load combinations.</source>
+        <translation>单击立即切换；右键编辑过滤器或保存、载入组合。</translation>
+    </message>
+</context>
+<context>
+    <name>EncodingMenu</name>
+    <message>
+        <source>Unicode</source>
+        <translation>Unicode</translation>
+    </message>
+    <message>
+        <source>Arabic</source>
+        <translation>阿拉伯语</translation>
+    </message>
+    <message>
+        <source>Baltic</source>
+        <translation>波罗的海语</translation>
+    </message>
+    <message>
+        <source>Celtic</source>
+        <translation>凯尔特语</translation>
+    </message>
+    <message>
+        <source>Cyrillic</source>
+        <translation>西里尔字母</translation>
+    </message>
+    <message>
+        <source>Central European</source>
+        <translation>中欧</translation>
+    </message>
+    <message>
+        <source>Chinese</source>
+        <translation>中文</translation>
+    </message>
+    <message>
+        <source>Eastern European</source>
+        <translation>东欧</translation>
+    </message>
+    <message>
+        <source>Greek</source>
+        <translation>希腊语</translation>
+    </message>
+    <message>
+        <source>Hebrew</source>
+        <translation>希伯来语</translation>
+    </message>
+    <message>
+        <source>Japanese</source>
+        <translation>日语</translation>
+    </message>
+    <message>
+        <source>Korean</source>
+        <translation>韩语</translation>
+    </message>
+    <message>
+        <source>Thai</source>
+        <translation>泰语</translation>
+    </message>
+    <message>
+        <source>Turkish</source>
+        <translation>土耳其语</translation>
+    </message>
+    <message>
+        <source>Western European</source>
+        <translation>西欧</translation>
+    </message>
+    <message>
+        <source>Vietnamese</source>
+        <translation>越南语</translation>
+    </message>
+</context>
+<context>
+    <name>ScratchPad</name>
+    <message>
+        <source>From base64</source>
+        <translation>Base64 解码</translation>
+    </message>
+    <message>
+        <source>To base64</source>
+        <translation>Base64 编码</translation>
+    </message>
+    <message>
+        <source>From hex</source>
+        <translation>十六进制解码</translation>
+    </message>
+    <message>
+        <source>To hex</source>
+        <translation>十六进制编码</translation>
+    </message>
+    <message>
+        <source>Decode url</source>
+        <translation>URL 解码</translation>
+    </message>
+    <message>
+        <source>Format json</source>
+        <translation>格式化 JSON</translation>
+    </message>
+    <message>
+        <source>Format xml</source>
+        <translation>格式化 XML</translation>
+    </message>
+    <message>
+        <source>CRC32 hex</source>
+        <translation>CRC32（十六进制）</translation>
+    </message>
+    <message>
+        <source>CRC32 dec</source>
+        <translation>CRC32（十进制）</translation>
+    </message>
+    <message>
+        <source>File time</source>
+        <translation>Windows 文件时间</translation>
+    </message>
+    <message>
+        <source>Dec-&gt;Hex</source>
+        <translation>十进制 → 十六进制</translation>
+    </message>
+    <message>
+        <source>Hex-&gt;Dec</source>
+        <translation>十六进制 → 十进制</translation>
+    </message>
+    <message>
+        <source>Copied to clipboard</source>
+        <translation>已复制到剪贴板</translation>
+    </message>
+    <message>
+        <source>Empty transformation</source>
+        <translation>转换结果为空</translation>
+    </message>
+    <message>
+        <source>Time</source>
+        <translation>时间</translation>
+    </message>
+    <message>
+        <source>TimeZone</source>
+        <translation>时区</translation>
+    </message>
+    <message>
+        <source>Save As...</source>
+        <translation>另存为...</translation>
+    </message>
+    <message>
+        <source>Save scratchpad text</source>
+        <translation>保存暂存页文本</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt);;All files (*)</source>
+        <translation>文本文件 (*.txt);;所有文件 (*)</translation>
+    </message>
+    <message>
+        <source>Save failed</source>
+        <translation>保存失败</translation>
+    </message>
+    <message>
+        <source>Cannot save text to %1.
+%2</source>
+        <translation>无法将文本保存到 %1。
+%2</translation>
+    </message>
+    <message>
+        <source>Saved to %1</source>
+        <translation>已保存到 %1</translation>
+    </message>
+</context>
+<context>
+    <name>TabbedScratchPad</name>
+    <message>
+        <source>You can add tabs by pressing &lt;b&gt;"+"&lt;/b&gt; or Ctrl+N</source>
+        <translation>点击 &lt;b&gt;“+”&lt;/b&gt; 或按 Ctrl+N 新建暂存页</translation>
+    </message>
+    <message>
+        <source>Scratchpad %1</source>
+        <translation>暂存页 %1</translation>
+    </message>
+    <message>
+        <source>New scratchpad (Ctrl+N)</source>
+        <translation>新建暂存页（Ctrl+N）</translation>
+    </message>
+    <message>
+        <source>Rename scratchpad</source>
+        <translation>重命名暂存页</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>名称：</translation>
+    </message>
+    <message>
+        <source>Save now</source>
+        <translation>立即保存</translation>
+    </message>
+    <message>
+        <source>Retry automatic saving</source>
+        <translation>重试自动保存</translation>
+    </message>
+    <message>
+        <source>Automatic save failed. Keep this window open or use Save As.
+%1</source>
+        <translation>自动保存失败。请保持此窗口打开，或使用“另存为”保存文本。
+%1</translation>
+    </message>
+    <message>
+        <source>Automatically saved</source>
+        <translation>已自动保存</translation>
+    </message>
+    <message>
+        <source>Close scratchpad</source>
+        <translation>关闭暂存页</translation>
+    </message>
+    <message>
+        <source>Close and delete this scratchpad? Use Save As first to keep a text copy.</source>
+        <translation>关闭并删除此暂存页？如需保留文本副本，请先使用“另存为”。</translation>
+    </message>
+    <message>
+        <source>Scratchpad save failed</source>
+        <translation>暂存器保存失败</translation>
+    </message>
+    <message>
+        <source>Changes could not be saved. Cancel to use Save As, or close this window anyway.</source>
+        <translation>无法保存更改。可取消并使用“另存为”，或放弃保存并关闭此窗口。</translation>
+    </message>
+</context>
+<context>
+    <name>AnalysisStorage</name>
+    <message>
+        <source>Cannot create data directory: %1</source>
+        <translation>无法创建数据目录：%1</translation>
+    </message>
+    <message>
+        <source>Unsupported query data</source>
+        <translation>不支持此查询数据版本或格式</translation>
+    </message>
+    <message>
+        <source>Invalid query data</source>
+        <translation>查询数据格式无效</translation>
+    </message>
+    <message>
+        <source>Duplicate query name</source>
+        <translation>查询方案名称重复</translation>
+    </message>
+    <message>
+        <source>Query data is busy; please retry</source>
+        <translation>查询数据正在被其他窗口保存，请重试</translation>
+    </message>
+    <message>
+        <source>Cannot create scratchpad directory</source>
+        <translation>无法创建暂存器数据目录</translation>
+    </message>
+    <message>
+        <source>Invalid scratchpad data; original file preserved</source>
+        <translation>暂存器数据无效，原文件已保留</translation>
+    </message>
+    <message>
+        <source>Scratchpad data is busy</source>
+        <translation>暂存器数据正在被其他窗口使用</translation>
+    </message>
+    <message>
+        <source>Automatic saving is unavailable; use Save As</source>
+        <translation>自动保存不可用，请使用“另存为”保存文本</translation>
+    </message>
+</context>
 </TS>
+

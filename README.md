@@ -1,3 +1,18 @@
+## whatcolor1 定制版 / Customized fork
+
+This fork adds compact filter buttons, named query plans, recoverable scratchpads, and built-in highlight palettes. Upstream download links below do **not** contain these customizations.
+
+本 Fork 的定制功能、用法、数据恢复限制与构建范围见 **[定制版使用说明](FORK_CUSTOMIZATIONS.md)**，改动记录见 **[Fork 更新日志](FORK_CHANGELOG.md)**。
+
+- [Windows x64 + Qt6 构建与下载](https://github.com/whatcolor1/klogg/actions/workflows/ci-build.yml)：成功运行中的 `klogg-windows-x64-qt6-portable` 产物是解压运行版，不是安装器。
+- [Linux / macOS Qt6 兼容性检查](https://github.com/whatcolor1/klogg/actions/workflows/ci-cross-platform.yml)：编译应用及测试，执行自动化回归；不生成 Linux / macOS 安装包。
+- 过滤器仍然单击立即执行，多选匹配任意项；配色方案和查询方案保存后下次启动恢复。
+- 大段暂存文本保存在独立恢复文件中。异常退出可能丢失最近约一秒编辑；迁移时需备份配置旁的 `analysis` 目录。
+
+以下为保留的上游项目介绍与发行渠道。
+
+---
+
 ![media_small](https://user-images.githubusercontent.com/1620716/119145300-2d98b800-ba52-11eb-8d87-abe72cf65dd1.png)
 
 [![GitHub license](https://img.shields.io/github/license/variar/klogg.svg?style=flat)](https://github.com/variar/klogg/blob/master/COPYING)

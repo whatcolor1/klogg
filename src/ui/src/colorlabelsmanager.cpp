@@ -79,6 +79,7 @@ ColorLabelsManager::setNextColorLabel( const QString& text )
 ColorLabelsManager::QuickHighlightersCollection
 ColorLabelsManager::updateColorLabel( size_t label, const QString& text, bool replaceCurrent )
 {
+    if ( label >= quickHighlighters_.size() ) return quickHighlighters_;
     auto wasHighlightedAnyLabel = false;
     auto wasHighlightedOtherLabel = false;
 

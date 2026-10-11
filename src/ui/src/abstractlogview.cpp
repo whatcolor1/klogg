@@ -79,6 +79,9 @@
 #include <tbb/flow_graph.h>
 
 #include "abstractlogview.h"
+#include "readablecolors.h"
+#include "loganalysishelpers.h"
+#include <QMessageBox>
 #include "containers.h"
 #include "highlightedmatch.h"
 #include "linetypes.h"
@@ -1273,6 +1276,23 @@ void AbstractLogView::setSearchPattern( const RegularExpressionPattern& pattern 
     forceRefresh();
 }
 
+void AbstractLogView::setPredefinedFilterHighlights(
+    const QList<PredefinedFilter>& filters, bool matchCase )
+{
+    predefinedFilterHighlighters_.clear();
+    for ( const auto& filter : filters ) {
+        if ( filter.highlightMode == PredefinedFilter::HighlightMode::Search || filter.pattern.isEmpty() ) continue;
+        const auto color = filter.color.isValid() ? filter.color : automaticFilterColor( filter.name );
+        Highlighter highlighter{ filter.pattern, !matchCase,
+            filter.highlightMode == PredefinedFilter::HighlightMode::Keywords,
+            readableForeground( color ), color };
+        highlighter.setUseRegex( filter.useRegex );
+        highlighter.compile();
+        predefinedFilterHighlighters_.push_back( std::move( highlighter ) );
+    }
+    forceRefresh();
+}
+
 void AbstractLogView::setQuickHighlighters(
     const std::vector<QuickHighlighters>& quickHighlighters )
 {
@@ -2087,6 +2107,7 @@ void AbstractLogView::createMenu()
              [ this ]( auto ) { Q_EMIT replaceScratchpadWithSelection(); } );
 
     popupMenu_ = new QMenu( this );
+    popupMenu_->setFont( QApplication::font( "QMenu" ) );
     highlightersMenu_ = new HighlightersMenu( tr( "Highlighters" ) );
     popupMenu_->addMenu( highlightersMenu_ );
     colorLabelsMenu_ = popupMenu_->addMenu( tr( "Color labels" ) );
@@ -2101,6 +2122,47 @@ void AbstractLogView::createMenu()
     popupMenu_->addSeparator();
     popupMenu_->addAction( findNextAction_ );
     popupMenu_->addAction( findPreviousAction_ );
+    popupMenu_->addSeparator();
+    popupMenu_->addAction( tr( "Track selected field ID" ), this, [this] {
+        if ( !selection_.isPortion() ) {
+            QMessageBox::information( this, tr( "Track field ID" ), tr( "Select an ID value or a complete field=value pair first." ) );
+            return;
+        }
+        // selectedLine() only reports whole-line selections. A selected word is
+        // represented separately, and getLines() returns its single source line.
+        const auto lines = selection_.getLines();
+        if ( lines.empty() || lines.front() >= logData_->getNbLine() ) return;
+        const auto pattern = LogAnalysis::fieldPattern( logData_->getExpandedLineString( lines.front() ),
+            selection_.getSelectedText( logData_ ) );
+        if ( pattern.isEmpty() ) {
+            QMessageBox::information( this, tr( "Track field ID" ), tr( "No unique ID field was found. Select the complete field=value pair, such as frameNumber=1234 or requestId:87." ) );
+            return;
+        }
+        Q_EMIT trackFieldRequested( pattern );
+    } );
+    popupMenu_->addAction( tr( "Use this line as elapsed-time start" ), this, [this] {
+        const auto line = selection_.selectedLine();
+        if ( !line || *line >= logData_->getNbLine() ) return;
+        const auto text = logData_->getLineString( *line );
+        if ( !LogAnalysis::timestamp( text ) ) {
+            QMessageBox::information( this, tr( "Elapsed time" ), tr( "No supported timestamp at the beginning of this line. Supported: HH:mm:ss.ffffff, MM-DD HH:mm:ss.ffffff, YYYY-MM-DD HH:mm:ss.ffffff." ) );
+            return;
+        }
+        elapsedStartText_ = text;
+        QMessageBox::information( this, tr( "Elapsed-time start saved" ), tr( "Right-click the end line and choose Calculate elapsed time from start." ) );
+    } );
+    popupMenu_->addAction( tr( "Calculate elapsed time from start" ), this, [this] {
+        const auto line = selection_.selectedLine();
+        if ( !line || *line >= logData_->getNbLine() ) return;
+        const auto end = logData_->getLineString( *line );
+        const auto elapsed = LogAnalysis::elapsedMicroseconds( elapsedStartText_, end );
+        if ( !elapsed ) {
+            QMessageBox::information( this, tr( "Elapsed time unavailable" ), tr( "Set a start line first. Both lines must have compatible timestamps in chronological order. Midnight without dates and timezone offsets are not inferred." ) );
+            return;
+        }
+        QMessageBox::information( this, tr( "Elapsed time" ), tr( "%1 ms (%2 microseconds)" )
+            .arg( QString::number( static_cast<double>( *elapsed ) / 1000.0, 'f', 3 ) ).arg( *elapsed ) );
+    } );
     popupMenu_->addSeparator();
     popupMenu_->addAction( replaceSearchAction_ );
     popupMenu_->addAction( addToSearchAction_ );
@@ -2222,11 +2284,9 @@ void AbstractLogView::drawTextArea( QPaintDevice* paintDevice )
 
     static const QBrush normalBulletBrush = QBrush( Qt::white );
     static const QBrush matchBulletBrush = QBrush( Qt::red );
-    static const QBrush markBrush = QBrush( "dodgerblue" );
-    static const QBrush markedMatchBrush = QBrush( "violet" );
 
     static constexpr int SeparatorWidth = 1;
-    static constexpr int BulletAreaWidth = 11;
+    static constexpr int BulletAreaWidth = 18;
     static constexpr int ContentMarginWidth = 1;
     static constexpr int LineNumberPadding = 3;
 
@@ -2384,7 +2444,26 @@ void AbstractLogView::drawTextArea( QPaintDevice* paintDevice )
                     highlighterMatches.addMatches( patternMatches );
                 }
 
-                // highlighterMatches.reserve( additionalHighlighters.size() );
+                // Display-only preset styling. First configured rule wins overlaps;
+                // explicit keyword colors remain visible over a whole-line background.
+                HighlightedMatchRanges presetKeywords;
+                bool presetLine = false;
+                for ( auto it = predefinedFilterHighlighters_.crbegin();
+                      it != predefinedFilterHighlighters_.crend(); ++it ) {
+                    klogg::vector<HighlightedMatch> matches;
+                    if ( !it->matchLine( logLine, matches ) ) continue;
+                    if ( it->highlightOnlyMatch() ) presetKeywords.addMatches( matches );
+                    else {
+                        presetLine = true;
+                        foreColor = it->foreColor();
+                        backColor = it->backColor();
+                    }
+                }
+                if ( presetLine ) highlighterMatches.addMatch(
+                    { 0_lcol, LineLength{ logLine.size() }, foreColor, backColor } );
+                highlighterMatches.addMatches( presetKeywords.matches() );
+
+                // Explicit text labels and quick find retain their higher priority.
                 for ( const auto& highlighter : additionalHighlighters ) {
                     klogg::vector<HighlightedMatch> patternMatches;
                     highlighter.matchLine( logLine, patternMatches );
@@ -2519,14 +2598,19 @@ void AbstractLogView::drawTextArea( QPaintDevice* paintDevice )
         // Then draw the bullet
         painter->setPen( Qt::black );
         const int circleSize = 3;
-        const int arrowHeight = 4;
+        const int arrowHeight = std::max( 5, fontHeight / 3 );
         const int middleXLine = BulletAreaWidth / 2;
         const int middleYLine = yPos + ( fontHeight / 2 );
 
         using LineTypeFlags = AbstractLogData::LineTypeFlags;
         const auto currentLineType = lineType( lineNumber );
         if ( currentLineType.testFlag( LineTypeFlags::Mark ) ) {
-            // A pretty arrow if the line is marked
+            painter->save();
+            const QColor marker( "#c2410c" );
+            const int stripeWidth = std::max( 3, BulletAreaWidth / 4 );
+            painter->fillRect( 0, yPos, stripeWidth, finalLineHeight, marker );
+            painter->restore();
+            // Larger flag for M marks, distinct from ordinary matching circles.
             const QPointF points[ 7 ] = {
                 QPointF( 1, middleYLine - 2 ),
                 QPointF( middleXLine, middleYLine - 2 ),
@@ -2537,8 +2621,8 @@ void AbstractLogView::drawTextArea( QPaintDevice* paintDevice )
                 QPointF( 1, middleYLine + 2 ),
             };
 
-            painter->setBrush( currentLineType.testFlag( LineTypeFlags::Match ) ? markedMatchBrush
-                                                                                : markBrush );
+            painter->setPen( QPen( QColor( "#7c2d12" ), 1 ) );
+            painter->setBrush( QColor( "#fbbf24" ) );
             painter->drawPolygon( points, 7 );
         }
         else {

@@ -64,6 +64,8 @@
 #include "quickfind.h"
 #include "quickfindmux.h"
 #include "regularexpressionpattern.h"
+#include "highlighterset.h"
+#include "predefinedfilters.h"
 #include "selection.h"
 #include "viewtools.h"
 #include "wrappedstring.h"
@@ -155,6 +157,7 @@ class AbstractLogView : public QAbstractScrollArea, public SearchableWidgetInter
 
     using QuickHighlighters = QStringList;
     void setQuickHighlighters( const std::vector<QuickHighlighters>& wordHighlighters );
+    void setPredefinedFilterHighlights( const QList<PredefinedFilter>& filters, bool matchCase );
 
     void registerShortcuts();
 
@@ -216,6 +219,7 @@ class AbstractLogView : public QAbstractScrollArea, public SearchableWidgetInter
     // Sent up when the user wants to replace the search with the selection
     void replaceSearch( const QString& selection );
     void excludeFromSearch( const QString& selection );
+    void trackFieldRequested( const QString& regex );
     // Sent up when the mouse is hovered over a line's margin
     void mouseHoveredOverLine( LineNumber line );
     // Sent up when the mouse leaves a line's margin
@@ -357,8 +361,10 @@ class AbstractLogView : public QAbstractScrollArea, public SearchableWidgetInter
 
     Selection selection_;
     RegularExpressionPattern searchPattern_;
+    QString elapsedStartText_;
 
-    std::vector<QuickHighlighters> quickHighlighters_ = std::vector<QuickHighlighters>{ 9 };
+    std::vector<QuickHighlighters> quickHighlighters_ = std::vector<QuickHighlighters>{ 18 };
+    klogg::vector<Highlighter> predefinedFilterHighlighters_;
 
     // Position of the view, those are crucial to control drawing
     // firstLine gives the position of the view,

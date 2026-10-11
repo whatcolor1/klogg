@@ -23,6 +23,10 @@
 #include <optional>
 
 #include <QAction>
+#include <QFileDialog>
+#include <QKeySequence>
+#include <QSaveFile>
+#include <QMessageBox>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -97,34 +101,46 @@ ScratchPad::ScratchPad( QWidget* parent )
     textEdit->setUndoRedoEnabled( true );
 
     auto toolBar = std::make_unique<QToolBar>();
+    auto* saveAs = toolBar->addAction( tr( "Save As..." ) );
+    saveAs->setShortcut( QKeySequence( Qt::CTRL | Qt::SHIFT | Qt::Key_S ) );
+    saveAs->setShortcutContext( Qt::WidgetWithChildrenShortcut );
+    this->addAction( saveAs );
+    connect( saveAs, &QAction::triggered, this, [ this ] {
+        const auto path = QFileDialog::getSaveFileName( this, tr( "Save scratchpad text" ), {}, tr( "Text files (*.txt);;All files (*)" ) );
+        if ( path.isEmpty() ) return;
+        QString error;
+        if ( !saveTextToFile( path, &error ) ) QMessageBox::warning( this, tr( "Save failed" ), tr( "Cannot save text to %1.\n%2" ).arg( path, error ) );
+        else statusBar_->showMessage( tr( "Saved to %1" ).arg( path ), StatusTimeout );
+    } );
+    toolBar->addSeparator();
 
-    auto decodeBase64Action = std::make_unique<QAction>( "From base64" );
+    auto decodeBase64Action = std::make_unique<QAction>( tr( "From base64" ) );
     connect( decodeBase64Action.get(), &QAction::triggered, [ this ]( auto ) { decodeBase64(); } );
     toolBar->addAction( decodeBase64Action.release() );
 
-    auto encodeBase64Action = std::make_unique<QAction>( "To base64" );
+    auto encodeBase64Action = std::make_unique<QAction>( tr( "To base64" ) );
     connect( encodeBase64Action.get(), &QAction::triggered, [ this ]( auto ) { encodeBase64(); } );
     toolBar->addAction( encodeBase64Action.release() );
 
-    auto decodeHexAction = std::make_unique<QAction>( "From hex" );
+    auto decodeHexAction = std::make_unique<QAction>( tr( "From hex" ) );
     connect( decodeHexAction.get(), &QAction::triggered, [ this ]( auto ) { decodeHex(); } );
     toolBar->addAction( decodeHexAction.release() );
 
-    auto encodeHexAction = std::make_unique<QAction>( "To hex" );
+    auto encodeHexAction = std::make_unique<QAction>( tr( "To hex" ) );
     connect( encodeHexAction.get(), &QAction::triggered, [ this ]( auto ) { encodeHex(); } );
     toolBar->addAction( encodeHexAction.release() );
 
-    auto decodeUrlAction = std::make_unique<QAction>( "Decode url" );
+    auto decodeUrlAction = std::make_unique<QAction>( tr( "Decode url" ) );
     connect( decodeUrlAction.get(), &QAction::triggered, [ this ]( auto ) { decodeUrl(); } );
     toolBar->addAction( decodeUrlAction.release() );
 
     toolBar->addSeparator();
 
-    auto formatJsonAction = std::make_unique<QAction>( "Format json" );
+    auto formatJsonAction = std::make_unique<QAction>( tr( "Format json" ) );
     connect( formatJsonAction.get(), &QAction::triggered, [ this ]( auto ) { formatJson(); } );
     toolBar->addAction( formatJsonAction.release() );
 
-    auto formatXmlAction = std::make_unique<QAction>( "Format xml" );
+    auto formatXmlAction = std::make_unique<QAction>( tr( "Format xml" ) );
     connect( formatXmlAction.get(), &QAction::triggered, [ this ]( auto ) { formatXml(); } );
     toolBar->addAction( formatXmlAction.release() );
 
@@ -144,11 +160,11 @@ ScratchPad::ScratchPad( QWidget* parent )
               connect( this, &ScratchPad::updateTransformation, this, changeFunction );
           };
 
-    addBoxToLayout( "CRC32 hex", &crc32HexBox_, &ScratchPad::crc32Hex );
-    addBoxToLayout( "CRC32 dec", &crc32DecBox_, &ScratchPad::crc32Dec );
-    addBoxToLayout( "File time", &fileTimeBox_, &ScratchPad::fileTime );
-    addBoxToLayout( "Dec->Hex", &decToHexBox_, &ScratchPad::decToHex );
-    addBoxToLayout( "Hex->Dec", &hexToDecBox_, &ScratchPad::hexToDec );
+    addBoxToLayout( tr( "CRC32 hex" ), &crc32HexBox_, &ScratchPad::crc32Hex );
+    addBoxToLayout( tr( "CRC32 dec" ), &crc32DecBox_, &ScratchPad::crc32Dec );
+    addBoxToLayout( tr( "File time" ), &fileTimeBox_, &ScratchPad::fileTime );
+    addBoxToLayout( tr( "Dec->Hex" ), &decToHexBox_, &ScratchPad::decToHex );
+    addBoxToLayout( tr( "Hex->Dec" ), &hexToDecBox_, &ScratchPad::hexToDec );
     timeBox_ = new klogg::DateTimeBox();
     transLayout->addRow( timeBox_ );
     connect( this, &ScratchPad::updateTransformation, [ this ]() {
@@ -170,8 +186,23 @@ ScratchPad::ScratchPad( QWidget* parent )
     this->setLayout( vLayout.release() );
 
     connect( textEdit_, &QPlainTextEdit::textChanged, this, &ScratchPad::updateTransformation );
+    connect( textEdit_, &QPlainTextEdit::textChanged, this, &ScratchPad::contentsChanged );
     connect( textEdit_, &QPlainTextEdit::selectionChanged, this,
              &ScratchPad::updateTransformation );
+}
+
+QString ScratchPad::plainText() const { return textEdit_->toPlainText(); }
+void ScratchPad::setPlainText( const QString& text ) { textEdit_->setPlainText( text ); }
+bool ScratchPad::saveTextToFile( const QString& path, QString* error ) const
+{
+    QSaveFile file( path );
+    file.setDirectWriteFallback( false );
+    const auto bytes = plainText().toUtf8();
+    if ( !file.open( QIODevice::WriteOnly ) || file.write( bytes ) != bytes.size() || !file.commit() ) {
+        if ( error ) *error = file.errorString();
+        return false;
+    }
+    return true;
 }
 
 void ScratchPad::addData( QString newData )
@@ -221,10 +252,10 @@ void ScratchPad::transformTextInPlace( const std::function<QString( QString )>& 
 
         sendTextToClipboard( transformedText );
 
-        statusBar_->showMessage( "Copied to clipboard", StatusTimeout );
+        statusBar_->showMessage( tr( "Copied to clipboard" ), StatusTimeout );
     }
     else {
-        statusBar_->showMessage( "Empty transformation", StatusTimeout );
+        statusBar_->showMessage( tr( "Empty transformation" ), StatusTimeout );
     }
 }
 
@@ -361,10 +392,10 @@ klogg::DateTimeBox::DateTimeBox()
     , timeLine_( new QLineEdit() )
     , tzComboBox_( new QComboBox() )
 {
-    addRow( tr( "Time" ), timeLine_ );
+    addRow( QApplication::translate( "ScratchPad", "Time" ), timeLine_ );
     timeLine_->setReadOnly( true );
 
-    addRow( tr( "TimeZone" ), tzComboBox_ );
+    addRow( QApplication::translate( "ScratchPad", "TimeZone" ), tzComboBox_ );
     connect( tzComboBox_, &QComboBox::currentTextChanged, [ this ] { displayTime(); } );
     auto ids = QTimeZone::availableTimeZoneIds();
     std::for_each( ids.begin(), ids.end(), [ & ]( const auto& item ) {

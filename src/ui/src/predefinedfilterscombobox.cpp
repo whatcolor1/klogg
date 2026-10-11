@@ -41,6 +41,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <qabstractitemview.h>
+#include <algorithm>
 
 #include "log.h"
 
@@ -118,6 +119,24 @@ void PredefinedFiltersComboBox::updateSearchPattern( const QString newSearchPatt
 {
     searchPattern_.newOne_ = newSearchPattern;
     searchPattern_.useLogicalCombining_ = useLogicalCombining;
+}
+
+void PredefinedFiltersComboBox::setSelectedFilters( const QList<PredefinedFilter>& filters )
+{
+    ignoreCollecting_ = true;
+    for ( int row = 0; row < model_->rowCount(); ++row ) {
+        auto* item = model_->item( row );
+        if ( !item->isCheckable() ) continue;
+        const bool selected = std::any_of( filters.cbegin(), filters.cend(),
+            [item]( const auto& filter ) {
+                return item->text() == filter.name
+                    && item->data( PatternRole ).toString() == filter.pattern
+                    && item->data( RegexRole ).toBool() == filter.useRegex;
+            } );
+        item->setCheckState( selected ? Qt::Checked : Qt::Unchecked );
+    }
+    ignoreCollecting_ = false;
+    searchPattern_.lastOne_ = searchPattern_.newOne_;
 }
 
 void PredefinedFiltersComboBox::showPopup()

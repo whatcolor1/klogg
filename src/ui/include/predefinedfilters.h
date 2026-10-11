@@ -41,6 +41,7 @@
 #define PREDEFINEDFILTERS_H_
 
 #include <QList>
+#include <QColor>
 #include <QString>
 
 #include "persistable.h"
@@ -49,6 +50,16 @@ struct PredefinedFilter {
     QString name;
     QString pattern;
     bool useRegex;
+    // Existing presets retain the normal search highlight until explicitly styled.
+    enum class HighlightMode { Search = 0, Keywords = 1, WholeLine = 2 };
+    QColor color{};
+    HighlightMode highlightMode = HighlightMode::Search;
+    QString group{};
+};
+
+struct FilterCombination {
+    QString name;
+    QList<PredefinedFilter> filters;
 };
 
 // Represents collection of filters read from settings file.
@@ -64,15 +75,25 @@ class PredefinedFiltersCollection final : public Persistable<PredefinedFiltersCo
     Collection getSyncedFilters();
     Collection getFilters() const;
     void setFilters( const Collection& filters );
+    QString colorScheme() const { return colorScheme_; }
+    void setColorScheme( const QString& scheme ) {
+        colorScheme_ = ( scheme == QStringLiteral( "nord" ) || scheme == QStringLiteral( "vivid" ) )
+            ? scheme : QStringLiteral( "latte" );
+    }
+    QList<FilterCombination> combinations() const { return combinations_; }
+    void setCombinations( const QList<FilterCombination>& combinations ) { combinations_ = combinations; }
 
     void retrieveFromStorage( QSettings& settings );
     void saveToStorage( QSettings& settings ) const;
     void saveToStorage( const Collection& filters );
 
   private:
+    // Additive keys retain version 2 so earlier builds can still read filters.
     static constexpr int PredefinedFiltersCollection_VERSION = 2;
 
     Collection filters_;
+    QString colorScheme_ = QStringLiteral( "latte" );
+    QList<FilterCombination> combinations_;
 };
 
 Q_DECLARE_METATYPE(PredefinedFilter)

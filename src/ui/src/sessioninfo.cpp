@@ -40,6 +40,7 @@ void SessionInfo::retrieveFromStorage( QSettings& settings )
             QString windowId = settings.value( "id" ).toString();
             auto window = Window{ windowId };
             window.geometry = settings.value( "geometry" ).toByteArray();
+            window.currentIndex = settings.value( "currentIndex", -1 ).toInt();
 
             if ( settings.contains( "OpenFiles/version" ) ) {
                 settings.beginGroup( "OpenFiles" );
@@ -88,6 +89,7 @@ void SessionInfo::saveToStorage( QSettings& settings ) const
 
         settings.setValue( "id", window.id );
         settings.setValue( "geometry", window.geometry );
+        settings.setValue( "currentIndex", window.currentIndex );
 
         settings.beginGroup( "OpenFiles" );
         settings.setValue( "version", OPENFILES_VERSION );
@@ -105,4 +107,5 @@ void SessionInfo::saveToStorage( QSettings& settings ) const
     }
     settings.endArray();
     settings.endGroup(); // Win
+    settings.sync(); // Flush checkpoints even when the process later exits abnormally.
 }

@@ -24,22 +24,22 @@ class EncodingMenu {
     static std::map<QString, std::vector<int>> supportedEncodings()
     {
         return std::map<QString, std::vector<int>>{
-            { "Unicode", { 106, 1013, 1014, 1018, 1019 } },
-            { "Arabic", { 82, 2256 } },
-            { "Baltic", { 7, 109, 2257 } },
-            { "Celtic", { 110 } },
-            { "Cyrillic", { 8, 2084, 2088, 2027, 2086, 2251 } },
-            { "Central European", { 2250 } },
-            { "Chinese", { 2026, 2025 } },
-            { "Eastern European", { 5 } },
-            { "Greek", { 10, 2253 } },
-            { "Hebrew", { 85, 2255 } },
-            { "Japanese", { 17, 18, 39 } },
-            { "Korean", { -949, 38 } },
-            { "Thai", { 2259 } },
-            { "Turkish", { 6, 12, 2254 } },
-            { "Western European", { 3, 4, 111, 2009, 2252 } },
-            { "Vietnamese", { 2258 } }
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Unicode" ), { 106, 1013, 1014, 1018, 1019 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Arabic" ), { 82, 2256 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Baltic" ), { 7, 109, 2257 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Celtic" ), { 110 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Cyrillic" ), { 8, 2084, 2088, 2027, 2086, 2251 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Central European" ), { 2250 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Chinese" ), { 2026, 2025 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Eastern European" ), { 5 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Greek" ), { 10, 2253 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Hebrew" ), { 85, 2255 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Japanese" ), { 17, 18, 39 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Korean" ), { -949, 38 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Thai" ), { 2259 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Turkish" ), { 6, 12, 2254 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Western European" ), { 3, 4, 111, 2009, 2252 } },
+            { QT_TRANSLATE_NOOP( "EncodingMenu", "Vietnamese" ), { 2258 } }
         };
     }
 
@@ -84,7 +84,8 @@ class EncodingMenu {
         encodingsMenu->addSeparator();
 
         for ( const auto& group : supportedEncodings ) {
-            auto menu = encodingsMenu->addMenu( group.first );
+            auto menu = encodingsMenu->addMenu(
+                QApplication::translate( "EncodingMenu", group.first.toUtf8().constData() ) );
             for ( const auto mib : group.second ) {
                 auto codec = QTextCodec::codecForMib( mib );
                 if ( codec ) {
