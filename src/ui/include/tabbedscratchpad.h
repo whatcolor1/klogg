@@ -23,13 +23,22 @@
 #include <QKeyEvent>
 #include <QTabWidget>
 #include <QWidget>
+#include <QTimer>
+#include "analysisstorage.h"
+
+class QLabel;
+class QCloseEvent;
 
 class TabbedScratchPad : public QWidget {
     Q_OBJECT
   public:
     explicit TabbedScratchPad( QWidget* parent = nullptr );
 
-    ~TabbedScratchPad() = default;
+    ~TabbedScratchPad() override;
+    bool configureStorage( const QString& directory, const QString& owner );
+    bool flush();
+    QString storagePath() const { return store_.path(); }
+    AnalysisStorage::ScratchDocument document() const;
     TabbedScratchPad( const TabbedScratchPad& ) = delete;
     TabbedScratchPad& operator=( const TabbedScratchPad& ) = delete;
 
@@ -39,13 +48,23 @@ class TabbedScratchPad : public QWidget {
 
   protected:
     void keyPressEvent( QKeyEvent* event ) override;
+    void closeEvent( QCloseEvent* event ) override;
 
   private:
     void addTab();
+    void closeTab( int index );
+    void scheduleSave();
+    void reportFailure( const QString& error );
 
   private:
     QTabWidget* tabWidget_{ nullptr };
     int tabCounter_{};
+    AnalysisStorage::ScratchStore store_;
+    QTimer saveTimer_;
+    QLabel* status_ = nullptr;
+    bool configured_ = false;
+    bool restoring_ = false;
+    bool dirty_ = false;
 };
 
 #endif // KLOGG_TABBEDSCRATCHPAD_H

@@ -34,6 +34,7 @@
 #include "configuration.h"
 #include "readablecolors.h"
 #include "loganalysishelpers.h"
+#include "analysisstorage.h"
 #include "colorlabelsmanager.h"
 #include "ui_predefinedfiltersdialog.h"
 #include "predefinedfiltersdialog.h"
@@ -916,3 +917,29 @@ TEST_CASE( "Browsing and editing draft searches preserve applied preset buttons 
     REQUIRE( panel->activeFilters().isEmpty() );
 }
 
+
+TEST_CASE( "Complete queries restore modes before immediate execution and reject invalid plans", "[ui][queries]" )
+{
+    QTemporaryFile file{ "query_test_XXXXXX" };
+    REQUIRE( generateDataFiles( file ) );
+    Session session;
+    CrawlerWidgetVisitor visitor;
+    visitor.crawler.reset( static_cast<CrawlerWidget*>(
+        session.open( file.fileName(), [] { return new CrawlerWidget(); } ) ) );
+    REQUIRE( waitUiState( [ & ] { return visitor.isLoadingFinished(); } ) );
+    AnalysisStorage::Query query{ "Two lines", "\"000010\" or \"000020\"", true, false, false, true, true };
+    QString error;
+    REQUIRE( visitor.crawler->applyQuery( query, &error ) );
+    REQUIRE( waitUiState( [ & ] { return visitor.getLogFilteredNbLines().get() == 2; } ) );
+    REQUIRE( visitor.crawler->currentQuery( query.name ).toJson() == query.toJson() );
+    query = { "Regex", "0000(10|20)", false, true, true, false, false };
+    REQUIRE( visitor.crawler->applyQuery( query, &error ) );
+    REQUIRE( waitUiState( [ & ] { return visitor.getLogFilteredNbLines().get() == 98; } ) );
+    const auto before = visitor.crawler->currentQuery( query.name ).toJson();
+    query.expression = "[";
+    REQUIRE_FALSE( visitor.crawler->applyQuery( query, &error ) );
+    REQUIRE( visitor.crawler->currentQuery( "Regex" ).toJson() == before );
+    REQUIRE( visitor.getLogFilteredNbLines().get() == 98 );
+    query.expression.clear();
+    REQUIRE_FALSE( visitor.crawler->applyQuery( query, &error ) );
+}

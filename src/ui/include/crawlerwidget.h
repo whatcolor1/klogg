@@ -67,6 +67,7 @@
 #include "signalmux.h"
 #include "viewinterface.h"
 
+namespace AnalysisStorage { struct Query; }
 class InfoLine;
 class QuickFindPattern;
 class SavedSearches;
@@ -112,6 +113,9 @@ class CrawlerWidget : public QSplitter,
     bool isTextWrapEnabled() const;
 
     void registerShortcuts();
+    AnalysisStorage::Query currentQuery( const QString& name ) const;
+    bool applyQuery( const AnalysisStorage::Query& query, QString* error = nullptr );
+    void showQueryMenu();
 
   public Q_SLOTS:
     // Stop the asynchoronous loading of the file if one is in progress

@@ -75,6 +75,8 @@
 #include "infoline.h"
 #include "quickfindpattern.h"
 #include "savedsearches.h"
+#include "analysisstorage.h"
+#include <QMessageBox>
 #include <QSignalBlocker>
 #include "shortcuts.h"
 
@@ -515,6 +517,79 @@ void CrawlerWidget::saveAsPredefinedFilter()
     const auto currentText = searchLineEdit_->currentText();
 
     Q_EMIT saveCurrentSearchAsPredefinedFilter( currentText );
+}
+
+AnalysisStorage::Query CrawlerWidget::currentQuery( const QString& name ) const
+{
+    return { name, searchLineEdit_->currentText(), matchCaseButton_->isChecked(),
+             useRegexpButton_->isChecked(), inverseButton_->isChecked(),
+             booleanButton_->isChecked(), searchRefreshButton_->isChecked() };
+}
+
+bool CrawlerWidget::applyQuery( const AnalysisStorage::Query& query, QString* error )
+{
+    RegularExpression expression( RegularExpressionPattern( query.expression, query.matchCase,
+        query.inverse, query.logical, !query.regex ) );
+    if ( query.expression.isEmpty() || !expression.isValid() ) {
+        if ( error ) *error = expression.errorString();
+        return false;
+    }
+    // Set all options before execution. Preserve any retained result views.
+    matchCaseButton_->setChecked( query.matchCase );
+    useRegexpButton_->setChecked( query.regex );
+    inverseButton_->setChecked( query.inverse );
+    booleanButton_->setChecked( query.logical );
+    searchRefreshButton_->setChecked( query.autoRefresh );
+    searchLineEdit_->setEditText( query.expression );
+    startNewSearch();
+    return true;
+}
+
+void CrawlerWidget::showQueryMenu()
+{
+    AnalysisStorage::QueryStore store( QDir( AnalysisStorage::directory() ).filePath( "queries.json" ) );
+    QList<AnalysisStorage::Query> queries;
+    QString error;
+    if ( !store.load( &queries, &error ) ) {
+        QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot read query plans. The original file was preserved.\n%1" ).arg( error ) );
+        return;
+    }
+    QMenu menu( this );
+    auto* save = menu.addAction( tr( "Save current query..." ) );
+    save->setEnabled( !searchLineEdit_->currentText().isEmpty() );
+    connect( save, &QAction::triggered, this, [ &, this ] {
+        auto query = currentQuery( {} );
+        RegularExpression expression( RegularExpressionPattern( query.expression, query.matchCase, query.inverse, query.logical, !query.regex ) );
+        if ( !expression.isValid() ) {
+            QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot save an invalid query.\n%1" ).arg( expression.errorString() ) );
+            return;
+        }
+        bool ok = false;
+        query.name = QInputDialog::getText( this, tr( "Save query plan" ), tr( "Name:" ), QLineEdit::Normal, {}, &ok ).trimmed();
+        if ( !ok || query.name.isEmpty() ) return;
+        for ( const auto& other : queries ) if ( other.name == query.name ) {
+            if ( QMessageBox::question( this, tr( "Query plans" ), tr( "Replace query plan \"%1\"?" ).arg( query.name ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) != QMessageBox::Yes ) return;
+        }
+        if ( !store.update( query, false, &error ) ) QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot save query plans.\n%1" ).arg( error ) );
+    } );
+    menu.addSeparator();
+    if ( queries.isEmpty() ) menu.addAction( tr( "No saved query plans" ) )->setEnabled( false );
+    auto* removeMenu = menu.addMenu( tr( "Delete query plan" ) );
+    removeMenu->setEnabled( !queries.isEmpty() );
+    for ( const auto& query : queries ) {
+        auto* action = menu.addAction( query.name );
+        action->setToolTip( query.expression );
+        connect( action, &QAction::triggered, this, [ this, query ] {
+            QString failure;
+            if ( !applyQuery( query, &failure ) ) QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot run this query.\n%1" ).arg( failure ) );
+        } );
+        auto* remove = removeMenu->addAction( query.name );
+        connect( remove, &QAction::triggered, this, [ &, query ] {
+            if ( QMessageBox::question( this, tr( "Query plans" ), tr( "Delete query plan \"%1\"?" ).arg( query.name ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) == QMessageBox::Yes
+                 && !store.update( query, true, &error ) ) QMessageBox::warning( this, tr( "Query plans" ), tr( "Cannot save query plans.\n%1" ).arg( error ) );
+        } );
+    }
+    menu.exec( QCursor::pos() );
 }
 
 void CrawlerWidget::showSearchContextMenu()
@@ -1206,6 +1281,13 @@ void CrawlerWidget::setup()
     searchLineLayout->addWidget( booleanButton_ );
     searchLineLayout->addWidget( searchRefreshButton_ );
     searchLineLayout->addWidget( predefinedFilters_ );
+    auto* queryButton = new QToolButton( this );
+    queryButton->setObjectName( "savedQueryButton" );
+    queryButton->setText( tr( "Queries" ) );
+    queryButton->setToolTip( tr( "Save or run a complete query with its search options" ) );
+    queryButton->setAutoRaise( true );
+    connect( queryButton, &QToolButton::clicked, this, &CrawlerWidget::showQueryMenu );
+    searchLineLayout->addWidget( queryButton );
     searchLineLayout->addWidget( searchLineEdit_ );
     searchLineLayout->addWidget( clearButton_ );
     searchLineLayout->addWidget( searchButton_ );

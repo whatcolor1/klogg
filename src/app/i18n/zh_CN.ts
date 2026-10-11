@@ -340,6 +340,78 @@
         <source>Detected as %1</source>
         <translation>检测到的编码：%1</translation>
     </message>
+    <message>
+        <source>Query plans</source>
+        <translation>查询方案</translation>
+    </message>
+    <message>
+        <source>Cannot read query plans. The original file was preserved.
+%1</source>
+        <translation>无法读取查询方案，原文件已保留。
+%1</translation>
+    </message>
+    <message>
+        <source>Save current query...</source>
+        <translation>保存当前查询...</translation>
+    </message>
+    <message>
+        <source>Cannot save an invalid query.
+%1</source>
+        <translation>无法保存无效的搜索表达式。
+%1</translation>
+    </message>
+    <message>
+        <source>Save query plan</source>
+        <translation>保存查询方案</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>名称：</translation>
+    </message>
+    <message>
+        <source>Replace query plan "%1"?</source>
+        <translation>替换查询方案“%1”？</translation>
+    </message>
+    <message>
+        <source>Cannot save query plans.
+%1</source>
+        <translation>无法保存查询方案。
+%1</translation>
+    </message>
+    <message>
+        <source>No saved query plans</source>
+        <translation>暂无保存的查询方案</translation>
+    </message>
+    <message>
+        <source>Delete query plan</source>
+        <translation>删除查询方案</translation>
+    </message>
+    <message>
+        <source>Cannot run this query.
+%1</source>
+        <translation>无法执行此查询。
+%1</translation>
+    </message>
+    <message>
+        <source>Delete query plan "%1"?</source>
+        <translation>删除查询方案“%1”？</translation>
+    </message>
+    <message>
+        <source>Keep Results</source>
+        <translation>保留结果</translation>
+    </message>
+    <message>
+        <source>Keep these results and show subsequent results in a new window</source>
+        <translation>保留当前结果，后续搜索结果在新的结果页显示</translation>
+    </message>
+    <message>
+        <source>Queries</source>
+        <translation>查询方案</translation>
+    </message>
+    <message>
+        <source>Save or run a complete query with its search options</source>
+        <translation>保存完整搜索条件与选项，或直接执行已保存的查询方案</translation>
+    </message>
 </context>
 <context>
     <name>HighlighterEdit</name>
@@ -732,6 +804,14 @@
         <location filename="../../ui/src/mainwindow.cpp" line="2071"/>
         <source>Remove from favorites</source>
         <translation>从收藏中移除</translation>
+    </message>
+    <message>
+        <source>Scratchpad save failed</source>
+        <translation>暂存器保存失败</translation>
+    </message>
+    <message>
+        <source>Scratchpad changes could not be saved. Cancel to use Save As, or discard unsaved changes and exit.</source>
+        <translation>无法保存暂存器更改。可取消并使用“另存为”，或放弃未保存的更改并退出。</translation>
     </message>
 </context>
 <context>
@@ -2395,6 +2475,32 @@
         <source>TimeZone</source>
         <translation>时区</translation>
     </message>
+    <message>
+        <source>Save As...</source>
+        <translation>另存为...</translation>
+    </message>
+    <message>
+        <source>Save scratchpad text</source>
+        <translation>保存暂存页文本</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt);;All files (*)</source>
+        <translation>文本文件 (*.txt);;所有文件 (*)</translation>
+    </message>
+    <message>
+        <source>Save failed</source>
+        <translation>保存失败</translation>
+    </message>
+    <message>
+        <source>Cannot save text to %1.
+%2</source>
+        <translation>无法将文本保存到 %1。
+%2</translation>
+    </message>
+    <message>
+        <source>Saved to %1</source>
+        <translation>已保存到 %1</translation>
+    </message>
 </context>
 <context>
     <name>TabbedScratchPad</name>
@@ -2405,6 +2511,91 @@
     <message>
         <source>Scratchpad %1</source>
         <translation>暂存页 %1</translation>
+    </message>
+    <message>
+        <source>New scratchpad (Ctrl+N)</source>
+        <translation>新建暂存页（Ctrl+N）</translation>
+    </message>
+    <message>
+        <source>Rename scratchpad</source>
+        <translation>重命名暂存页</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>名称：</translation>
+    </message>
+    <message>
+        <source>Save now</source>
+        <translation>立即保存</translation>
+    </message>
+    <message>
+        <source>Retry automatic saving</source>
+        <translation>重试自动保存</translation>
+    </message>
+    <message>
+        <source>Automatic save failed. Keep this window open or use Save As.
+%1</source>
+        <translation>自动保存失败。请保持此窗口打开，或使用“另存为”保存文本。
+%1</translation>
+    </message>
+    <message>
+        <source>Automatically saved</source>
+        <translation>已自动保存</translation>
+    </message>
+    <message>
+        <source>Close scratchpad</source>
+        <translation>关闭暂存页</translation>
+    </message>
+    <message>
+        <source>Close and delete this scratchpad? Use Save As first to keep a text copy.</source>
+        <translation>关闭并删除此暂存页？如需保留文本副本，请先使用“另存为”。</translation>
+    </message>
+    <message>
+        <source>Scratchpad save failed</source>
+        <translation>暂存器保存失败</translation>
+    </message>
+    <message>
+        <source>Changes could not be saved. Cancel to use Save As, or close this window anyway.</source>
+        <translation>无法保存更改。可取消并使用“另存为”，或放弃保存并关闭此窗口。</translation>
+    </message>
+</context>
+<context>
+    <name>AnalysisStorage</name>
+    <message>
+        <source>Cannot create data directory: %1</source>
+        <translation>无法创建数据目录：%1</translation>
+    </message>
+    <message>
+        <source>Unsupported query data</source>
+        <translation>不支持此查询数据版本或格式</translation>
+    </message>
+    <message>
+        <source>Invalid query data</source>
+        <translation>查询数据格式无效</translation>
+    </message>
+    <message>
+        <source>Duplicate query name</source>
+        <translation>查询方案名称重复</translation>
+    </message>
+    <message>
+        <source>Query data is busy; please retry</source>
+        <translation>查询数据正在被其他窗口保存，请重试</translation>
+    </message>
+    <message>
+        <source>Cannot create scratchpad directory</source>
+        <translation>无法创建暂存器数据目录</translation>
+    </message>
+    <message>
+        <source>Invalid scratchpad data; original file preserved</source>
+        <translation>暂存器数据无效，原文件已保留</translation>
+    </message>
+    <message>
+        <source>Scratchpad data is busy</source>
+        <translation>暂存器数据正在被其他窗口使用</translation>
+    </message>
+    <message>
+        <source>Automatic saving is unavailable; use Save As</source>
+        <translation>自动保存不可用，请使用“另存为”保存文本</translation>
     </message>
 </context>
 </TS>

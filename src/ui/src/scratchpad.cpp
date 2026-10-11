@@ -23,6 +23,10 @@
 #include <optional>
 
 #include <QAction>
+#include <QFileDialog>
+#include <QKeySequence>
+#include <QSaveFile>
+#include <QMessageBox>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -97,6 +101,18 @@ ScratchPad::ScratchPad( QWidget* parent )
     textEdit->setUndoRedoEnabled( true );
 
     auto toolBar = std::make_unique<QToolBar>();
+    auto* saveAs = toolBar->addAction( tr( "Save As..." ) );
+    saveAs->setShortcut( QKeySequence( Qt::CTRL | Qt::SHIFT | Qt::Key_S ) );
+    saveAs->setShortcutContext( Qt::WidgetWithChildrenShortcut );
+    this->addAction( saveAs );
+    connect( saveAs, &QAction::triggered, this, [ this ] {
+        const auto path = QFileDialog::getSaveFileName( this, tr( "Save scratchpad text" ), {}, tr( "Text files (*.txt);;All files (*)" ) );
+        if ( path.isEmpty() ) return;
+        QString error;
+        if ( !saveTextToFile( path, &error ) ) QMessageBox::warning( this, tr( "Save failed" ), tr( "Cannot save text to %1.\n%2" ).arg( path, error ) );
+        else statusBar_->showMessage( tr( "Saved to %1" ).arg( path ), StatusTimeout );
+    } );
+    toolBar->addSeparator();
 
     auto decodeBase64Action = std::make_unique<QAction>( tr( "From base64" ) );
     connect( decodeBase64Action.get(), &QAction::triggered, [ this ]( auto ) { decodeBase64(); } );
@@ -170,8 +186,23 @@ ScratchPad::ScratchPad( QWidget* parent )
     this->setLayout( vLayout.release() );
 
     connect( textEdit_, &QPlainTextEdit::textChanged, this, &ScratchPad::updateTransformation );
+    connect( textEdit_, &QPlainTextEdit::textChanged, this, &ScratchPad::contentsChanged );
     connect( textEdit_, &QPlainTextEdit::selectionChanged, this,
              &ScratchPad::updateTransformation );
+}
+
+QString ScratchPad::plainText() const { return textEdit_->toPlainText(); }
+void ScratchPad::setPlainText( const QString& text ) { textEdit_->setPlainText( text ); }
+bool ScratchPad::saveTextToFile( const QString& path, QString* error ) const
+{
+    QSaveFile file( path );
+    file.setDirectWriteFallback( false );
+    const auto bytes = plainText().toUtf8();
+    if ( !file.open( QIODevice::WriteOnly ) || file.write( bytes ) != bytes.size() || !file.commit() ) {
+        if ( error ) *error = file.errorString();
+        return false;
+    }
+    return true;
 }
 
 void ScratchPad::addData( QString newData )

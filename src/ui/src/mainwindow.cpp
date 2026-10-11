@@ -194,6 +194,9 @@ MainWindow::MainWindow( WindowSession session )
 
     scratchPad_.setWindowIcon( mainIcon_ );
     scratchPad_.setWindowTitle( tr( "klogg - scratchpad" ) );
+    if ( !scratchPad_.configureStorage( QDir( AnalysisStorage::directory() ).filePath( "scratchpads" ), session_.windowId() ) ) {
+        QTimer::singleShot( 0, &scratchPad_, [ this ] { scratchPad_.show(); } );
+    }
 
     connect( &mainTabWidget_, &TabbedCrawlerWidget::tabCloseRequested, this,
              [ this ]( int index ) { this->closeTab( index, ActionInitiator::User ); } );
@@ -1555,6 +1558,16 @@ void MainWindow::closeEvent( QCloseEvent* event )
         this->hide();
     }
     else {
+        if ( !scratchPad_.flush() ) {
+            scratchPad_.show();
+            scratchPad_.raise();
+            if ( QMessageBox::warning( this, tr( "Scratchpad save failed" ),
+                tr( "Scratchpad changes could not be saved. Cancel to use Save As, or discard unsaved changes and exit." ),
+                QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Cancel ) != QMessageBox::Discard ) {
+                event->ignore();
+                return;
+            }
+        }
         sessionCheckpointTimer_->stop();
         const auto saveSettings = session_.close();
         if ( saveSettings ) {
@@ -2279,3 +2292,4 @@ void MainWindow::generateDump()
         throw std::logic_error( "test dump" );
     }
 }
+

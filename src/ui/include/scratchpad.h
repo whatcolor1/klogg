@@ -39,6 +39,9 @@ class ScratchPad : public QWidget {
     explicit ScratchPad( QWidget* parent = nullptr );
 
     ~ScratchPad() = default;
+    QString plainText() const;
+    void setPlainText( const QString& text );
+    bool saveTextToFile( const QString& path, QString* error = nullptr ) const;
     ScratchPad( const ScratchPad& ) = delete;
     ScratchPad& operator=( const ScratchPad& ) = delete;
 
@@ -48,6 +51,7 @@ class ScratchPad : public QWidget {
 
   Q_SIGNALS:
     void updateTransformation();
+    void contentsChanged();
 
   private Q_SLOTS:
     void crc32Hex();
