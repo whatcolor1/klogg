@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 #include <QFile>
 #include <QPlainTextEdit>
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 #include "analysisstorage.h"
