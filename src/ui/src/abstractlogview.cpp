@@ -2124,12 +2124,15 @@ void AbstractLogView::createMenu()
     popupMenu_->addAction( findPreviousAction_ );
     popupMenu_->addSeparator();
     popupMenu_->addAction( tr( "Track selected field ID" ), this, [this] {
-        const auto line = selection_.selectedLine();
-        if ( !line || !selection_.isPortion() || *line >= logData_->getNbLine() ) {
+        if ( !selection_.isPortion() ) {
             QMessageBox::information( this, tr( "Track field ID" ), tr( "Select an ID value or a complete field=value pair first." ) );
             return;
         }
-        const auto pattern = LogAnalysis::fieldPattern( logData_->getExpandedLineString( *line ),
+        // selectedLine() only reports whole-line selections. A selected word is
+        // represented separately, and getLines() returns its single source line.
+        const auto lines = selection_.getLines();
+        if ( lines.empty() || lines.front() >= logData_->getNbLine() ) return;
+        const auto pattern = LogAnalysis::fieldPattern( logData_->getExpandedLineString( lines.front() ),
             selection_.getSelectedText( logData_ ) );
         if ( pattern.isEmpty() ) {
             QMessageBox::information( this, tr( "Track field ID" ), tr( "No unique ID field was found. Select the complete field=value pair, such as frameNumber=1234 or requestId:87." ) );
