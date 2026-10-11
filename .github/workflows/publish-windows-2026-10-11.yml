@@ -1,0 +1,57 @@
+name: Publish verified Windows portable release
+
+on:
+  push:
+    branches:
+      - codex/publish-windows-2026-10-11
+    paths:
+      - .github/workflows/publish-windows-2026-10-11.yml
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-windows-2026-10-11
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'whatcolor1/klogg'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: whatcolor1/klogg
+      RELEASE_TAG: fork-2026.10.11
+    steps:
+      - name: Download existing verified Windows package
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 38136167841 --name klogg-windows-x64-qt6-portable --dir package
+          find package -maxdepth 2 -type f -printf '%P\n'
+          python3 - <<'PY'
+          import hashlib, pathlib, shutil, zipfile
+          files = list(pathlib.Path('package').rglob('*.zip'))
+          if len(files) != 1:
+              raise SystemExit('Expected exactly one Windows package ZIP')
+          source = files[0]
+          expected = '068744857863fcbcdc479a173702e1985a6c6a2d3fe7c1fccf27f084b2d83a80'
+          if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
+              raise SystemExit('Windows package checksum mismatch')
+          with zipfile.ZipFile(source) as archive:
+              if archive.testzip() is not None:
+                  raise SystemExit('Windows package CRC check failed')
+          shutil.copyfile(source, 'klogg-windows-x64-qt6-portable.zip')
+          print('Verified exact Windows package')
+          PY
+      - name: Publish only the Windows ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" klogg-windows-x64-qt6-portable.zip \
+            --target cf1cc1aa3437b507dc533af3268c088c22379546 \
+            --title "Klogg 定制版 · 2026.10.11" \
+            --notes "Windows x64 · Qt6 便携版。下载 ZIP 后解压运行。" \
+            --latest
