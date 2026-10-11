@@ -26,6 +26,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QShowEvent>
 #include <QTabBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -88,12 +89,8 @@ bool TabbedScratchPad::configureStorage( const QString& directory, const QString
         delete page;
     }
     for ( const auto& saved : restored.pages ) {
-        addTab();
-        const auto index = tabWidget_->count() - 1;
-        tabWidget_->setTabText( index, saved.title );
-        qobject_cast<ScratchPad*>( tabWidget_->widget( index ) )->setPlainText( saved.text );
+        appendPage( saved.title, saved.text );
     }
-    if ( tabWidget_->count() == 0 ) addTab();
     tabWidget_->setCurrentIndex( restored.current );
     restoring_ = false;
     dirty_ = true;
@@ -104,7 +101,7 @@ bool TabbedScratchPad::configureStorage( const QString& directory, const QString
 AnalysisStorage::ScratchDocument TabbedScratchPad::document() const
 {
     AnalysisStorage::ScratchDocument result;
-    result.current = tabWidget_->currentIndex();
+    result.current = qMax( 0, tabWidget_->currentIndex() );
     for ( int i = 0; i < tabWidget_->count(); ++i ) {
         const auto* page = qobject_cast<ScratchPad*>( tabWidget_->widget( i ) );
         result.pages.append( { tabWidget_->tabText( i ), page->plainText() } );
@@ -142,9 +139,25 @@ void TabbedScratchPad::scheduleSave()
 
 void TabbedScratchPad::addTab()
 {
+    int number = 1;
+    QString title;
+    bool used;
+    do {
+        title = tr( "Scratchpad %1" ).arg( number++ );
+        used = false;
+        for ( int i = 0; i < tabWidget_->count(); ++i ) {
+            if ( tabWidget_->tabText( i ) == title ) { used = true; break; }
+        }
+    } while ( used );
+    appendPage( title, {} );
+}
+
+void TabbedScratchPad::appendPage( const QString& title, const QString& text )
+{
     auto* page = new ScratchPad( tabWidget_ );
+    page->setPlainText( text );
     connect( page, &ScratchPad::contentsChanged, this, &TabbedScratchPad::scheduleSave );
-    const auto index = tabWidget_->addTab( page, tr( "Scratchpad %1" ).arg( ++tabCounter_ ) );
+    const auto index = tabWidget_->addTab( page, title );
     tabWidget_->setCurrentIndex( index );
     scheduleSave();
 }
@@ -166,8 +179,19 @@ void TabbedScratchPad::closeTab( int index )
     if ( configured_ && !store_.save( next, &error ) ) { reportFailure( error ); return; }
     tabWidget_->removeTab( index );
     page->deleteLater();
+    if ( tabWidget_->count() == 0 ) {
+        // Deletion is already committed. Reopening creates the next blank page.
+        saveTimer_.stop();
+        dirty_ = !configured_;
+        hide();
+    }
+    else scheduleSave();
+}
+
+void TabbedScratchPad::showEvent( QShowEvent* event )
+{
     if ( tabWidget_->count() == 0 ) addTab();
-    scheduleSave();
+    QWidget::showEvent( event );
 }
 
 void TabbedScratchPad::closeEvent( QCloseEvent* event )
@@ -187,10 +211,10 @@ void TabbedScratchPad::keyPressEvent( QKeyEvent* event )
     const auto key = event->key();
     if ( mod == Qt::ControlModifier && key == Qt::Key_N ) addTab();
     else if ( mod == Qt::ControlModifier && ( key == Qt::Key_W || key == Qt::Key_Q ) ) closeTab( tabWidget_->currentIndex() );
-    else if ( ( mod == Qt::ControlModifier && ( key == Qt::Key_Tab || key == Qt::Key_PageDown ) ) )
+    else if ( tabWidget_->count() > 0 && ( mod == Qt::ControlModifier && ( key == Qt::Key_Tab || key == Qt::Key_PageDown ) ) )
         tabWidget_->setCurrentIndex( ( tabWidget_->currentIndex() + 1 ) % tabWidget_->count() );
-    else if ( ( mod == ( Qt::ControlModifier | Qt::ShiftModifier ) && key == Qt::Key_Tab )
-        || ( mod == Qt::ControlModifier && key == Qt::Key_PageUp ) )
+    else if ( tabWidget_->count() > 0 && ( ( mod == ( Qt::ControlModifier | Qt::ShiftModifier ) && key == Qt::Key_Tab )
+        || ( mod == Qt::ControlModifier && key == Qt::Key_PageUp ) ) )
         tabWidget_->setCurrentIndex( ( tabWidget_->currentIndex() + tabWidget_->count() - 1 ) % tabWidget_->count() );
     else { QWidget::keyPressEvent( event ); return; }
     event->accept();
@@ -198,10 +222,12 @@ void TabbedScratchPad::keyPressEvent( QKeyEvent* event )
 
 void TabbedScratchPad::addData( QString newData )
 {
+    if ( tabWidget_->count() == 0 ) addTab();
     if ( auto* page = qobject_cast<ScratchPad*>( tabWidget_->currentWidget() ) ) page->addData( std::move( newData ) );
 }
 
 void TabbedScratchPad::replaceData( QString newData )
 {
+    if ( tabWidget_->count() == 0 ) addTab();
     if ( auto* page = qobject_cast<ScratchPad*>( tabWidget_->currentWidget() ) ) page->replaceData( std::move( newData ) );
 }

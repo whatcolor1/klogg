@@ -28,6 +28,7 @@
 
 class QLabel;
 class QCloseEvent;
+class QShowEvent;
 
 class TabbedScratchPad : public QWidget {
     Q_OBJECT
@@ -49,16 +50,17 @@ class TabbedScratchPad : public QWidget {
   protected:
     void keyPressEvent( QKeyEvent* event ) override;
     void closeEvent( QCloseEvent* event ) override;
+    void showEvent( QShowEvent* event ) override;
 
   private:
     void addTab();
+    void appendPage( const QString& title, const QString& text );
     void closeTab( int index );
     void scheduleSave();
     void reportFailure( const QString& error );
 
   private:
     QTabWidget* tabWidget_{ nullptr };
-    int tabCounter_{};
     AnalysisStorage::ScratchStore store_;
     QTimer saveTimer_;
     QLabel* status_ = nullptr;

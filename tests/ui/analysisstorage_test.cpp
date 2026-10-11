@@ -9,6 +9,72 @@
 #include "tabbedscratchpad.h"
 #include "test_utils.h"
 
+TEST_CASE( "Scratchpad reuses free names and closing the last page hides the window", "[ui][scratchpad][tabs]" )
+{
+    QTemporaryDir dir;
+    QString firstTitle, path;
+    {
+        TabbedScratchPad window;
+        REQUIRE( window.configureStorage( dir.path(), "tab-window" ) );
+        window.show();
+        auto* tabs = window.findChild<QTabWidget*>();
+        REQUIRE( tabs->count() == 1 );
+        firstTitle = tabs->tabText( 0 );
+        path = window.storagePath();
+        for ( int repeat = 0; repeat < 3; ++repeat ) {
+            QTest::keyClick( &window, Qt::Key_N, Qt::ControlModifier );
+            REQUIRE( tabs->count() == 2 );
+            REQUIRE( tabs->tabText( 1 ) != firstTitle );
+            tabs->tabCloseRequested( 0 );
+            QTest::keyClick( &window, Qt::Key_N, Qt::ControlModifier );
+            REQUIRE( tabs->tabText( 1 ) == firstTitle );
+            tabs->tabCloseRequested( 0 );
+        }
+        // A failed deletion keeps the last page and window intact.
+        REQUIRE( QFile::remove( path ) );
+        REQUIRE( QDir().mkdir( path ) );
+        tabs->tabCloseRequested( 0 );
+        REQUIRE( tabs->count() == 1 );
+        REQUIRE( window.isVisible() );
+        REQUIRE( QDir().rmdir( path ) );
+        tabs->tabCloseRequested( 0 );
+        REQUIRE( tabs->count() == 0 );
+        REQUIRE_FALSE( window.isVisible() );
+        QJsonObject saved;
+        QString error;
+        REQUIRE( AnalysisStorage::readJson( path, &saved, &error ) );
+        REQUIRE( saved.value( "pages" ).toArray().isEmpty() );
+        // Sending text to the hidden, empty scratchpad must still work.
+        window.addData( "new excerpt" );
+        REQUIRE( tabs->count() == 1 );
+        REQUIRE( tabs->tabText( 0 ) == firstTitle );
+        REQUIRE( qobject_cast<ScratchPad*>( tabs->widget( 0 ) )->plainText().contains( "new excerpt" ) );
+        tabs->setTabText( 0, "Custom name" );
+        REQUIRE( window.flush() );
+    }
+    {
+        TabbedScratchPad restored;
+        REQUIRE( restored.configureStorage( dir.path(), "tab-window" ) );
+        auto* tabs = restored.findChild<QTabWidget*>();
+        REQUIRE( tabs->tabText( 0 ) == "Custom name" );
+        QTest::keyClick( &restored, Qt::Key_N, Qt::ControlModifier );
+        REQUIRE( tabs->tabText( 1 ) == firstTitle );
+        tabs->tabCloseRequested( 1 );
+        auto* page = qobject_cast<ScratchPad*>( tabs->widget( 0 ) );
+        page->setPlainText( {} );
+        tabs->tabCloseRequested( 0 );
+    }
+    {
+        TabbedScratchPad restored;
+        REQUIRE( restored.configureStorage( dir.path(), "tab-window" ) );
+        auto* tabs = restored.findChild<QTabWidget*>();
+        REQUIRE( tabs->count() == 0 );
+        restored.show();
+        REQUIRE( tabs->count() == 1 );
+        REQUIRE( tabs->tabText( 0 ) == firstTitle );
+    }
+}
+
 TEST_CASE( "Named queries retain all options and merge changes from other windows", "[ui][queries][storage]" )
 {
     QTemporaryDir dir;
