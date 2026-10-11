@@ -58,15 +58,14 @@ void runSearch( LogFilteredData* filtered_data, const QString& regexp,
                 SafeQSignalSpy& searchProgressSpy )
 {
 
-    QTimer::singleShot(
-        50, [ & ]() { filtered_data->runSearch( RegularExpressionPattern( regexp ) ); } );
+    searchProgressSpy.clear();
+    filtered_data->runSearch( RegularExpressionPattern( regexp ) );
 
-    int progress = 0;
-    do {
-        REQUIRE( searchProgressSpy.wait() );
-        QList<QVariant> progressArgs = searchProgressSpy.last();
-        progress = progressArgs.at( 1 ).toInt();
-    } while ( progress < 100 );
+    // Completion may already be queued or recorded before the next wait starts.
+    REQUIRE( waitUiState( [ & ]() {
+        return !searchProgressSpy.isEmpty()
+            && searchProgressSpy.last().at( 1 ).toInt() >= 100;
+    } ) );
 }
 
 } // namespace
