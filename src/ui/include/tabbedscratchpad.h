@@ -43,8 +43,8 @@ class TabbedScratchPad : public QWidget {
     TabbedScratchPad& operator=( const TabbedScratchPad& ) = delete;
 
   public Q_SLOTS:
-    void addData( QString data );
-    void replaceData( QString data );
+    void addData( QString newData );
+    void replaceData( QString newData );
 
   protected:
     void keyPressEvent( QKeyEvent* event ) override;

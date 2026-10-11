@@ -158,7 +158,9 @@ void TabbedScratchPad::closeTab( int index )
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) != QMessageBox::Yes ) return;
     auto next = document();
     next.pages.removeAt( index );
-    next.current = qBound( 0, tabWidget_->currentIndex(), qMax( 0, static_cast<int>( next.pages.size() ) - 1 ) );
+    const auto previousIndex = tabWidget_->currentIndex();
+    next.current = qBound( 0, previousIndex - ( index < previousIndex ? 1 : 0 ),
+        qMax( 0, static_cast<int>( next.pages.size() ) - 1 ) );
     QString error;
     // Commit deletion before changing the UI; failed writes keep the page intact.
     if ( configured_ && !store_.save( next, &error ) ) { reportFailure( error ); return; }
@@ -194,12 +196,12 @@ void TabbedScratchPad::keyPressEvent( QKeyEvent* event )
     event->accept();
 }
 
-void TabbedScratchPad::addData( QString data )
+void TabbedScratchPad::addData( QString newData )
 {
-    if ( auto* page = qobject_cast<ScratchPad*>( tabWidget_->currentWidget() ) ) page->addData( std::move( data ) );
+    if ( auto* page = qobject_cast<ScratchPad*>( tabWidget_->currentWidget() ) ) page->addData( std::move( newData ) );
 }
 
-void TabbedScratchPad::replaceData( QString data )
+void TabbedScratchPad::replaceData( QString newData )
 {
-    if ( auto* page = qobject_cast<ScratchPad*>( tabWidget_->currentWidget() ) ) page->replaceData( std::move( data ) );
+    if ( auto* page = qobject_cast<ScratchPad*>( tabWidget_->currentWidget() ) ) page->replaceData( std::move( newData ) );
 }
