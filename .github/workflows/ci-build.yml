@@ -79,7 +79,7 @@ jobs:
           Copy-Item build_root/output/klogg.exe,build_root/output/klogg_portable.exe,build_root/output/klogg_grep.exe,build_root/output/*.dll package/
           windeployqt --release --no-opengl-sw --no-translations package/klogg_portable.exe
           if ($LASTEXITCODE -ne 0) { throw 'Qt deployment failed' }
-          Copy-Item COPYING,NOTICE,README.md,DOCUMENTATION.md package/
+          Copy-Item COPYING,NOTICE,README.md,DOCUMENTATION.md,FORK_CUSTOMIZATIONS.md,FORK_CHANGELOG.md package/
           Compress-Archive package/* klogg-windows-x64-qt6-portable.zip
       - name: Check packaged application startup
         timeout-minutes: 2

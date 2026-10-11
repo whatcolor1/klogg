@@ -1,0 +1,104 @@
+name: Linux and macOS Qt6
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cross-platform-qt6-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64 Qt6
+            os: ubuntu-24.04
+          - name: macOS Intel Qt6
+            os: macos-15-intel
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      QT_QPA_PLATFORM: offscreen
+      KLOGG_VERSION: 24.11.0.${{ github.run_number }}
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_ANALYTICS: 1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ragel pkg-config qt6-base-dev qt6-5compat-dev qt6-tools-dev qt6-tools-dev-tools qt6-translations-l10n zlib1g-dev libicu-dev libssl-dev libcurl4-openssl-dev
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install ragel ninja pkg-config
+      - name: Install macOS Qt
+        if: runner.os == 'macOS'
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.3'
+          arch: clang_64
+          modules: qt5compat
+          cache: true
+      - name: Cache source dependencies
+        id: source-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            cpm_cache
+            boost_1_86_0
+          key: ${{ matrix.os }}-qt6-deps-${{ hashFiles('3rdparty/CMakeLists.txt') }}
+      - name: Install Boost headers
+        shell: bash
+        run: |
+          if [ ! -d boost_1_86_0/boost ]; then
+            curl --fail --location --retry 3 https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2 --output boost.tar.bz2
+            tar -xjf boost.tar.bz2
+          fi
+          echo "BOOST_ROOT=$GITHUB_WORKSPACE/boost_1_86_0" >> "$GITHUB_ENV"
+      - name: Configure
+        run: >-
+          cmake -S . -B build_root -G Ninja
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DCPM_SOURCE_CACHE=${{ github.workspace }}/cpm_cache
+          -DKLOGG_BUILD_TESTS=ON -DKLOGG_GENERIC_CPU=ON
+          -DKLOGG_USE_LTO=OFF -DKLOGG_USE_SENTRY=OFF
+      - name: Save downloaded dependencies before compilation
+        if: steps.source-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            cpm_cache
+            boost_1_86_0
+          key: ${{ matrix.os }}-qt6-deps-${{ hashFiles('3rdparty/CMakeLists.txt') }}
+      - name: Build application and tests
+        run: cmake --build build_root --parallel 2
+      - name: Test
+        run: ctest --test-dir build_root --output-on-failure --timeout 180
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-test-diagnostics
+          path: |
+            build_root/Testing/Temporary/
+            build_root/tests/ui/highlight-*.png
+          if-no-files-found: ignore
+      - name: Upload UI previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-ui-previews
+          path: build_root/tests/ui/ui-*.png
+          if-no-files-found: ignore
+          retention-days: 7
